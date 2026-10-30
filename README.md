@@ -39,14 +39,16 @@ Antes de qualquer uso assistencial ou operacional real, será necessário implem
 
 ## Próximas etapas
 
-1. Backend e banco de dados seguro.
-2. Autenticação e controle de acesso.
-3. Cadastro ampliado de pacientes com minimização de dados.
+1. Criar o projeto Supabase e aplicar `supabase/migrations/0001_initial_schema.sql`.
+2. Testar autenticação e isolamento de dados com usuários distintos.
+3. Integrar o frontend por uma camada de serviços, mantendo o modo de demonstração até a validação.
 4. Procedimentos, TUSS, SIGTAP e materiais/OPME.
 5. Solicitações e geração de documentos.
 6. Descrições operatórias.
 7. Consentimentos e orientações.
 8. Gestão financeira detalhada e relatórios.
+
+A arquitetura proposta para banco, autenticação, RLS e auditoria está em `docs/arquitetura-backend-seguranca.md`.
 
 ## Desenvolvimento
 
