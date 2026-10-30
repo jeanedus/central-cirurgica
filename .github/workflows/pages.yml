@@ -1,4 +1,4 @@
-name: Deploy protótipo no GitHub Pages
+name: Deploy frontend no GitHub Pages
 
 on:
   push:
@@ -22,10 +22,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Preparar arquivos estáticos
+      - name: Preparar somente os arquivos do frontend
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp -r src _site/
+      - name: Publicar artefato estático
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
   deploy:
     environment:
