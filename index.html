@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#102a43" />
+  <meta name="description" content="Central Cirúrgica — gestão de procedimentos e acompanhamento cirúrgico." />
+  <title>Central Cirúrgica</title>
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" aria-label="Central Cirúrgica - início">
+        <span class="brand-mark">CC</span>
+        <span><strong>Central</strong><small>Cirúrgica</small></span>
+      </a>
+      <div class="nav-label">GESTÃO</div>
+      <nav class="nav-menu" aria-label="Navegação principal">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">▦</span> Visão geral</button>
+        <button class="nav-item" data-view="surgeries"><span class="nav-icon">✚</span> Cirurgias</button>
+        <button class="nav-item" data-view="procedures"><span class="nav-icon">▤</span> Procedimentos</button>
+      </nav>
+      <div class="nav-label nav-label-spaced">PLANEJADO</div>
+      <div class="nav-item nav-disabled"><span class="nav-icon">⌑</span> Solicitações <span class="soon">Em breve</span></div>
+      <div class="nav-item nav-disabled"><span class="nav-icon">◇</span> Materiais / OPME <span class="soon">Em breve</span></div>
+      <div class="nav-item nav-disabled"><span class="nav-icon">▧</span> Descrições <span class="soon">Em breve</span></div>
+      <div class="nav-item nav-disabled"><span class="nav-icon">▣</span> Consentimentos <span class="soon">Em breve</span></div>
+      <div class="nav-item nav-disabled"><span class="nav-icon">↗</span> Financeiro <span class="soon">Em breve</span></div>
+      <div class="sidebar-bottom">
+        <span class="status-dot"></span>
+        <span>Versão inicial · 0.1.0</span>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
+        <div class="breadcrumb">Central Cirúrgica <span>/</span> <strong id="breadcrumbCurrent">Visão geral</strong></div>
+        <div class="topbar-right"><span class="environment-pill">AMBIENTE DE TESTES</span><div class="avatar">JD</div></div>
+      </header>
+      <section id="appContent" class="content" aria-live="polite"></section>
+      <footer class="footer">Central Cirúrgica <span>•</span> Projeto em desenvolvimento</footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
