@@ -11,7 +11,7 @@ A primeira versão contém:
 - Acompanhamento inicial de status.
 - Campos financeiros básicos de previsão e recebimento.
 
-## Executar localmente
+## Executar o frontend localmente
 
 Como esta versão usa módulos JavaScript nativos, execute um servidor estático na raiz do projeto. Exemplo com Node.js instalado:
 
@@ -39,17 +39,23 @@ Antes de qualquer uso assistencial ou operacional real, será necessário implem
 
 ## Próximas etapas
 
-1. Criar o projeto Supabase e aplicar `supabase/migrations/0001_initial_schema.sql`.
-2. Testar autenticação e isolamento de dados com usuários distintos.
-3. Integrar o frontend por uma camada de serviços, mantendo o modo de demonstração até a validação.
+1. Subir o PostgreSQL e a API localmente com Docker Compose.
+2. Criar migrações Prisma versionadas e testar o modelo multi-organização.
+3. Implementar autenticação, autorização e isolamento de dados.
+4. Integrar o frontend por uma camada de serviços, mantendo o modo de demonstração até a validação.
 4. Procedimentos, TUSS, SIGTAP e materiais/OPME.
 5. Solicitações e geração de documentos.
 6. Descrições operatórias.
 7. Consentimentos e orientações.
 8. Gestão financeira detalhada e relatórios.
 
-A arquitetura proposta para banco, autenticação, RLS e auditoria está em `docs/arquitetura-backend-seguranca.md`.
+A arquitetura independente, o modelo multiusuário e as instruções locais estão em `docs/arquitetura-backend-seguranca.md`.
 
 ## Desenvolvimento
 
 Mantenha cada domínio em seu próprio módulo e concentre regras compartilhadas em `src/core`. Mudanças em um módulo devem ser acompanhadas por testes próprios e revisão de compatibilidade.
+
+
+## Backend próprio (em desenvolvimento)
+
+O backend independente usa Node.js, TypeScript, Express, Prisma e PostgreSQL. Consulte `docs/arquitetura-backend-seguranca.md`. Configure `.env` a partir de `.env.example` e execute `docker compose up --build` na raiz. A API inicial oferece apenas endpoints de saúde; autenticação e operações de negócio ainda não estão habilitadas.
