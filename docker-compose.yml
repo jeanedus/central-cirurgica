@@ -1,0 +1,36 @@
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: central-cirurgica-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: central_cirurgica
+      POSTGRES_USER: central_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+    volumes:
+      - central_cirurgica_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U central_app -d central_cirurgica"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  api:
+    build: ./backend
+    container_name: central-cirurgica-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3333
+      DATABASE_URL: postgresql://central_app:${POSTGRES_PASSWORD}@database:5432/central_cirurgica?schema=public
+      CORS_ORIGIN: http://localhost:5173
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3333:3333"
+
+volumes:
+  central_cirurgica_data:
