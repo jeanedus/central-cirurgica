@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  DOCTOR
+  STAFF
+  BILLING
+  VIEWER
+}
+
+enum SurgeryStatus {
+  REQUESTED
+  UNDER_REVIEW
+  AUTHORIZED
+  SCHEDULED
+  PERFORMED
+  BILLED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+  DENIED
+}
+
+enum PayerType {
+  INSURANCE
+  PUBLIC
+  PRIVATE
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  email        String       @unique @db.VarChar(254)
+  passwordHash String       @map("password_hash") @db.VarChar(255)
+  displayName  String?      @map("display_name") @db.VarChar(120)
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  memberships  Membership[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Organization {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @db.VarChar(160)
+  slug        String       @unique @db.VarChar(80)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  memberships Membership[]
+  procedures  Procedure[]
+  surgeries   Surgery[]
+
+  @@map("organizations")
+}
+
+model Membership {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  role           MembershipRole @default(VIEWER)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+  @@map("memberships")
+}
+
+model Procedure {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String       @db.VarChar(160)
+  specialty      String       @db.VarChar(80)
+  technique      String?
+  notes          String?
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  surgeries      Surgery[]
+
+  @@index([organizationId, name])
+  @@map("procedures")
+}
+
+model Surgery {
+  id               String       @id @default(uuid()) @db.Uuid
+  organizationId   String       @map("organization_id") @db.Uuid
+  procedureId      String?      @map("procedure_id") @db.Uuid
+  procedureSnapshot String      @map("procedure_snapshot") @db.VarChar(200)
+  internalReference String?     @map("internal_reference") @db.VarChar(80)
+  specialty        String       @db.VarChar(80)
+  hospital         String?      @db.VarChar(160)
+  payer            PayerType    @default(INSURANCE)
+  status           SurgeryStatus @default(REQUESTED)
+  requestDate      DateTime?    @map("request_date") @db.Date
+  surgeryDate      DateTime?    @map("surgery_date") @db.Date
+  expectedRevenue  Decimal      @default(0) @map("expected_revenue") @db.Decimal(12, 2)
+  received         Decimal      @default(0) @db.Decimal(12, 2)
+  notes            String?
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  procedure        Procedure?   @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, surgeryDate])
+  @@index([organizationId, status])
+  @@map("surgeries")
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  action    String   @db.VarChar(80)
+  entity    String   @db.VarChar(80)
+  entityId  String   @map("entity_id") @db.VarChar(80)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
