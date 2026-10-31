@@ -52,3 +52,15 @@ A API armazena senhas com bcrypt e aplica limitação de tentativas nas rotas de
 - Parar e apagar também o banco local: `docker compose down -v` (apaga os dados).
 
 Não utilizar dados reais ou identificáveis de pacientes nesta fase.
+
+## Frontend com tela de acesso
+
+Após atualizar o projeto, inicie um servidor estático na raiz do repositório em outra janela do terminal:
+
+```bash
+npx serve -l 5500 .
+```
+
+Acesse http://localhost:5500. A tela de login se comunica com a API em http://localhost:3333. O token fica em sessionStorage e é removido ao sair ou fechar a sessão do navegador.
+
+A interface inicial usa dados demonstrativos do navegador para os módulos antigos. O login autentica na API, mas ainda não significa que os registros de cirurgias e procedimentos estejam sendo persistidos no PostgreSQL ou isolados por organização. Não inserir dados reais de pacientes.
