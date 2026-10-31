@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { PrismaClient } from "@prisma/client";
+import { authRouter } from "./modules/auth/auth.routes.js";
 
 const prisma = new PrismaClient();
 
@@ -16,9 +17,10 @@ export function createApp() {
   }));
   app.use(express.json({ limit: "100kb" }));
   app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 120, standardHeaders: "draft-7", legacyHeaders: false }));
+  app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: "draft-7", legacyHeaders: false }));
 
   app.get("/api/health", (_request, response) => {
-    response.json({ status: "ok", service: "central-cirurgica-api", version: "0.1.0" });
+    response.json({ status: "ok", service: "central-cirurgica-api", version: "0.2.0" });
   });
 
   app.get("/api/health/database", async (_request, response) => {
@@ -29,6 +31,8 @@ export function createApp() {
       response.status(503).json({ status: "error", database: "unavailable" });
     }
   });
+
+  app.use("/api/auth", authRouter);
 
   app.use((_request, response) => {
     response.status(404).json({ error: "Rota não encontrada." });
