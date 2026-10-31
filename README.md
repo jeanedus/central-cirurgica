@@ -40,9 +40,9 @@ Antes de qualquer uso assistencial ou operacional real, será necessário implem
 ## Próximas etapas
 
 1. Subir o PostgreSQL e a API localmente com Docker Compose.
-2. Criar migrações Prisma versionadas e testar o modelo multi-organização.
-3. Implementar autenticação, autorização e isolamento de dados.
-4. Integrar o frontend por uma camada de serviços, mantendo o modo de demonstração até a validação.
+2. Implementar e validar autenticação, autorização e isolamento de dados (primeira versão em desenvolvimento).
+3. Integrar o frontend por uma camada de serviços, mantendo o modo de demonstração até a validação.
+4. Criar e testar os módulos de procedimentos, TUSS, SIGTAP e materiais/OPME.
 4. Procedimentos, TUSS, SIGTAP e materiais/OPME.
 5. Solicitações e geração de documentos.
 6. Descrições operatórias.
@@ -58,4 +58,4 @@ Mantenha cada domínio em seu próprio módulo e concentre regras compartilhadas
 
 ## Backend próprio (em desenvolvimento)
 
-O backend independente usa Node.js, TypeScript, Express, Prisma e PostgreSQL. Consulte `docs/arquitetura-backend-seguranca.md`. Configure `.env` a partir de `.env.example` e execute `docker compose up --build` na raiz. A API inicial oferece apenas endpoints de saúde; autenticação e operações de negócio ainda não estão habilitadas.
+O backend independente usa Node.js, TypeScript, Express, Prisma e PostgreSQL. Consulte `docs/arquitetura-backend-seguranca.md`. Configure `.env` a partir de `.env.example` e execute `docker compose up --build` na raiz. A API já inclui endpoints iniciais de cadastro, login e consulta de perfil. A autenticação está em validação local; ainda não é adequada para uso com dados reais de pacientes.
