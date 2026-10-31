@@ -10,8 +10,9 @@ API própria em Node.js + TypeScript + Express, PostgreSQL e Prisma.
 ## Inicialização na raiz do repositório
 
 1. Copie o arquivo .env.example para .env.
-2. Defina POSTGRES_PASSWORD com uma senha longa e exclusiva. Neste primeiro ambiente local, use apenas letras e números para evitar problemas de codificação na URL de conexão.
-3. Execute:
+2. Defina POSTGRES_PASSWORD com uma senha longa e exclusiva. Neste ambiente local, use apenas letras e números.
+3. Defina AUTH_JWT_SECRET com pelo menos 32 caracteres aleatórios. Não reutilize a senha do banco.
+4. Execute:
 
 ```bash
 docker compose up --build
@@ -24,11 +25,24 @@ O Docker iniciará o PostgreSQL, aguardará o banco ficar saudável, aplicará a
 - API: http://localhost:3333/api/health
 - Conexão com banco: http://localhost:3333/api/health/database
 
-Resposta esperada do health check do banco:
+## Autenticação inicial
+
+- `POST /api/auth/register`: cria usuário, organização e vínculo OWNER.
+- `POST /api/auth/login`: autentica e retorna token Bearer válido por 8 horas.
+- `GET /api/auth/me`: retorna usuário e organizações; exige `Authorization: Bearer <token>`.
+
+Exemplo de cadastro:
 
 ```json
-{"status":"ok","database":"connected"}
+{
+  "name": "Minha Clínica",
+  "displayName": "Nome do profissional",
+  "email": "profissional@exemplo.com",
+  "password": "uma-senha-forte-com-12-caracteres"
+}
 ```
+
+A API armazena senhas com bcrypt e aplica limitação de tentativas nas rotas de autenticação. O cadastro público está habilitado apenas para desenvolvimento inicial; antes de disponibilizar o produto publicamente, implementar convite/verificação de e-mail, recuperação de senha, política de sessão, monitoramento e revisão de segurança.
 
 ## Parar e reiniciar
 
@@ -37,4 +51,4 @@ Resposta esperada do health check do banco:
 - Ver logs: `docker compose logs -f api`
 - Parar e apagar também o banco local: `docker compose down -v` (apaga os dados).
 
-Esta etapa ainda não implementa login nem endpoints de negócio. Não utilizar dados reais ou identificáveis de pacientes.
+Não utilizar dados reais ou identificáveis de pacientes nesta fase.
