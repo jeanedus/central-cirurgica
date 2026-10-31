@@ -134,6 +134,11 @@ const login: RequestHandler = async (request, response) => {
 };
 
 const me: RequestHandler = async (request, response) => {
+  if (!request.authUserId) {
+    response.status(401).json({ error: "Autenticação necessária." });
+    return;
+  }
+
   try {
     const user = await prisma.user.findUnique({
       where: { id: request.authUserId },
