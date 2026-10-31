@@ -1,10 +1,15 @@
 import { renderDashboard } from "./modules/dashboard.js";
 import { renderProcedures } from "./modules/procedures.js";
 import { renderSurgeries } from "./modules/surgeries.js";
+import { apiRequest, clearAccessToken, getAccessToken } from "./core/api.js";
+import { renderAuthScreen } from "./modules/auth-screen.js";
 
 const root = document.querySelector("#appContent");
+const shell = document.querySelector("#appShell");
+const authRoot = document.querySelector("#authScreen");
 const titles = { dashboard: "Visão geral", procedures: "Procedimentos", surgeries: "Cirurgias" };
 let currentView = "dashboard";
+let currentUser = null;
 
 window.showToast = message => {
   const toast = document.querySelector("#toast");
@@ -25,8 +30,34 @@ function navigate(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function showApplication(user) {
+  currentUser = user;
+  authRoot.hidden = true;
+  shell.hidden = false;
+  const displayName = user.displayName || user.email;
+  document.querySelector("#sessionUser").textContent = displayName;
+  document.querySelector("#sessionAvatar").textContent = displayName.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
+  navigate(currentView);
+}
+
+function showLogin() {
+  shell.hidden = true;
+  authRoot.hidden = false;
+  clearAccessToken();
+  renderAuthScreen(authRoot, result => {
+    const user = result.user;
+    showApplication(user);
+    window.showToast("Acesso realizado com sucesso.");
+  });
+}
+
 document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => navigate(button.dataset.view)));
 document.querySelector("#mobileMenu").addEventListener("click", () => document.querySelector("#sidebar").classList.toggle("sidebar-open"));
+document.querySelector("#logoutButton").addEventListener("click", () => {
+  currentUser = null;
+  showLogin();
+});
+
 root.addEventListener("click", event => {
   const action = event.target.closest("[data-action]")?.dataset.action;
   if (action === "go-surgeries" || action === "new-surgery") {
@@ -39,4 +70,18 @@ root.addEventListener("click", event => {
   }
 });
 
-navigate(currentView);
+async function initialize() {
+  const token = getAccessToken();
+  if (!token) {
+    showLogin();
+    return;
+  }
+  try {
+    const result = await apiRequest("/auth/me");
+    showApplication(result.user);
+  } catch {
+    showLogin();
+  }
+}
+
+initialize();
