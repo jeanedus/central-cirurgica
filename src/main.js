@@ -1,7 +1,7 @@
 import { renderDashboard } from "./modules/dashboard.js";
 import { renderProcedures } from "./modules/procedures.js";
 import { renderSurgeries } from "./modules/surgeries.js";
-import { apiRequest, clearAccessToken, getAccessToken } from "./core/api.js";
+import { apiRequest, clearAccessToken, getAccessToken, setActiveOrganization } from "./core/api.js";
 import { renderAuthScreen } from "./modules/auth-screen.js";
 
 const root = document.querySelector("#appContent");
@@ -30,11 +30,18 @@ function navigate(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function showApplication(user) {
-  currentUser = user;
+function showApplication(result) {
+  currentUser = result.user;
+  const organizations = result.organizations || (result.organization ? [{ ...result.organization, role: result.role }] : []);
+  if (!organizations.length) {
+    showLogin();
+    window.showToast("Sua conta ainda não possui uma organização vinculada.");
+    return;
+  }
+  setActiveOrganization(organizations[0].id);
   authRoot.hidden = true;
   shell.hidden = false;
-  const displayName = user.displayName || user.email;
+  const displayName = currentUser.displayName || currentUser.email;
   document.querySelector("#sessionUser").textContent = displayName;
   document.querySelector("#sessionAvatar").textContent = displayName.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   navigate(currentView);
@@ -45,8 +52,7 @@ function showLogin() {
   authRoot.hidden = false;
   clearAccessToken();
   renderAuthScreen(authRoot, result => {
-    const user = result.user;
-    showApplication(user);
+    showApplication(result);
     window.showToast("Acesso realizado com sucesso.");
   });
 }
@@ -78,7 +84,7 @@ async function initialize() {
   }
   try {
     const result = await apiRequest("/auth/me");
-    showApplication(result.user);
+    showApplication(result);
   } catch {
     showLogin();
   }
