@@ -60,3 +60,13 @@ Verifica schema Prisma, geração do client, aplicação de todas as migrations 
 
 Execução aprovada em 01/11/2026:
 https://github.com/jeanedus/central-cirurgica/actions/runs/41361009877
+
+## Consulta do catálogo na aplicação
+
+A API de leitura do catálogo versionado está em `backend/src/modules/catalogs/catalogs.routes.ts`:
+- `GET /api/catalogs/SIGTAP`: informa se existe uma versão importada e validada e seus metadados.
+- `GET /api/catalogs/SIGTAP/codes?search=<termo>&page=1&pageSize=50`: pesquisa os códigos da versão vigente, com paginação (máximo 100 por página).
+
+A tela Procedimentos e códigos abre o painel de consulta do SIGTAP quando o filtro SIGTAP é selecionado. Ela diferencia o catálogo versionado dos códigos manuais antigos. Se ainda não houver versão importada e validada, mostra uma mensagem explícita em vez de uma tabela vazia ou de falha silenciosa.
+
+A consulta exige autenticação e associação do usuário à organização ativa, mas os registros do catálogo permanecem compartilhados entre organizações. A consulta não altera nem exclui códigos manuais.
