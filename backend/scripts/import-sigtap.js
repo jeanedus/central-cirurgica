@@ -131,12 +131,13 @@ async function main() {
   let inserted = 0;
   try {
     for (const dataset of parsedDatasets) {
-      for (const rows of chunk(dataset.records, 500)) {
+      for (let offset = 0; offset < dataset.records.length; offset += 500) {
+        const rows = dataset.records.slice(offset, offset + 500);
         await prisma.catalogDatasetRecord.createMany({
           data: rows.map((data, index) => ({
             catalogVersionId: version.id,
             datasetName: dataset.name,
-            sourceLine: 0, // replaced below by stable row index in the source dataset
+            sourceLine: offset + index + 1,
             data
           }))
         });
