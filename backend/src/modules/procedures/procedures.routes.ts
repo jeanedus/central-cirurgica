@@ -82,9 +82,14 @@ const create: RequestHandler = async (request, response) => {
 
 const remove: RequestHandler = async (request, response) => {
   const organizationId = request.header("x-organization-id");
-  const procedureId = request.params.id;
+  const rawProcedureId = request.params.id;
+  const procedureId = Array.isArray(rawProcedureId) ? rawProcedureId[0] : rawProcedureId;
   if (!request.authUserId || !organizationId) {
     response.status(400).json({ error: "Organização ativa não informada." });
+    return;
+  }
+  if (!procedureId) {
+    response.status(400).json({ error: "Identificador do procedimento inválido." });
     return;
   }
   try {
