@@ -16,8 +16,15 @@ export async function renderDashboard(root) {
     const surgeries = surgeryResult.surgeries || [];
     const procedures = procedureResult.procedures || [];
     const count = status => surgeries.filter(item => item.status === status).length;
-    const received = surgeries.reduce((sum, item) => sum + (Number(item.received) || 0), 0);
-    const pending = surgeries.reduce((sum, item) => sum + Math.max(0, (Number(item.expectedRevenue) || 0) - (Number(item.received) || 0)), 0);
+    const received = surgeries.reduce((sum, item) => {
+      const amount = Number(item.received) || 0;
+      const expected = Number(item.expectedRevenue) || 0;
+      return sum + (item.status === "Recebida" ? Math.max(amount, expected) : amount);
+    }, 0);
+    const pending = surgeries.reduce((sum, item) => {
+      if (["Recebida", "Cancelada", "Negada"].includes(item.status)) return sum;
+      return sum + Math.max(0, (Number(item.expectedRevenue) || 0) - (Number(item.received) || 0));
+    }, 0);
     const recent = [...surgeries].sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
 
     root.innerHTML = `
