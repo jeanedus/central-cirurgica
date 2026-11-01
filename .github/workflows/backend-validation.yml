@@ -54,5 +54,7 @@ jobs:
         run: npx prisma migrate deploy
       - name: Seed coding systems
         run: npm run db:seed
+      - name: Check SIGTAP importer syntax
+        run: node --check scripts/import-sigtap.js
       - name: Build TypeScript
         run: npm run build
