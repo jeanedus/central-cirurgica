@@ -2,7 +2,6 @@ import { apiRequest } from "../core/api.js";
 import { formatDate, formatCurrency, escapeHTML } from "../core/storage.js";
 
 const STATUSES = ["Solicitada","Em análise","Autorizada","Agendada","Realizada","Faturada","Parcialmente recebida","Recebida","Cancelada","Negada"];
-
 let surgeries = [];
 let procedures = [];
 
@@ -11,25 +10,25 @@ export async function renderSurgeries(root) {
     <div class="page-heading"><div><div class="eyebrow">ACOMPANHAMENTO ASSISTENCIAL</div><h1>Cirurgias</h1><p class="muted">Registre solicitações e acompanhe autorização, realização e valores.</p></div><button class="button button-primary" id="addSurgery">＋ Registrar cirurgia</button></div>
     <div class="notice"><strong>Ambiente de desenvolvimento.</strong> Utilize somente registros fictícios; não cadastre nomes, documentos ou dados clínicos identificáveis de pacientes.</div>
     <section class="panel"><div class="panel-heading"><div><h2>Registros de cirurgias</h2><p class="muted" id="surgeryCount">Carregando...</p></div><input class="search-input" id="surgerySearch" placeholder="Buscar procedimento ou hospital..." /></div><div id="surgeryList"><div class="empty-state">Carregando cirurgias...</div></div></section>
-    <dialog class="modal modal-wide" id="surgeryDialog"><form id="surgeryForm"><div class="modal-heading"><div><div class="eyebrow">NOVO REGISTRO</div><h2>Registrar cirurgia</h2></div><button type="button" class="icon-button" id="closeSurgery" aria-label="Fechar">×</button></div>
+    <dialog class="modal modal-wide" id="surgeryDialog"><form id="surgeryForm"><div class="modal-heading"><div><div class="eyebrow" id="surgeryEyebrow">NOVO REGISTRO</div><h2 id="surgeryDialogTitle">Registrar cirurgia</h2></div><button type="button" class="icon-button" id="closeSurgery" aria-label="Fechar">×</button></div>
       <div class="form-row"><label>Identificador fictício / código interno<input name="patientRef" maxlength="80" placeholder="Ex.: TESTE-001 (não usar nome real)" /></label><label>Procedimento<select name="procedureId" required><option value="">Carregando procedimentos...</option></select></label></div>
       <div class="form-row"><label>Especialidade<select name="specialty" required><option>Coluna</option><option>Crânio</option><option>Nervos periféricos</option><option>Outros</option></select></label><label>Hospital / unidade<input name="hospital" maxlength="160" placeholder="Hospital" /></label></div>
       <div class="form-row"><label>Origem<select name="payer"><option>Convênio</option><option>SUS</option><option>Particular</option></select></label><label>Status<select name="status">${STATUSES.map(status => `<option>${status}</option>`).join("")}</select></label></div>
       <div class="form-row"><label>Data da solicitação<input type="date" name="requestDate" /></label><label>Data da cirurgia<input type="date" name="date" /></label></div>
-      <div class="section-divider">CONTROLE FINANCEIRO INICIAL</div>
+      <div class="section-divider">CONTROLE FINANCEIRO</div>
       <div class="form-row"><label>Valor previsto / faturado (R$)<input type="number" name="expectedRevenue" min="0" step="0.01" value="0" required /></label><label>Valor recebido (R$)<input type="number" name="received" min="0" step="0.01" value="0" required /></label></div>
       <label>Observações<textarea name="notes" rows="2" maxlength="5000" placeholder="Informações administrativas sem dados clínicos identificáveis"></textarea></label>
       <div class="modal-actions"><button type="button" class="button button-secondary" id="cancelSurgery">Cancelar</button><button class="button button-primary" type="submit">Salvar registro</button></div>
     </form></dialog>`;
 
   const dialog = root.querySelector("#surgeryDialog");
-  root.querySelector("#addSurgery").addEventListener("click", () => dialog.showModal());
+  const form = root.querySelector("#surgeryForm");
+  root.querySelector("#addSurgery").addEventListener("click", () => openCreateDialog(root));
   root.querySelector("#closeSurgery").addEventListener("click", () => dialog.close());
   root.querySelector("#cancelSurgery").addEventListener("click", () => dialog.close());
 
-  root.querySelector("#surgeryForm").addEventListener("submit", async event => {
+  form.addEventListener("submit", async event => {
     event.preventDefault();
-    const form = event.currentTarget;
     const submit = form.querySelector('[type="submit"]');
     const data = Object.fromEntries(new FormData(form));
     const selectedProcedure = procedures.find(item => item.id === data.procedureId);
@@ -44,12 +43,17 @@ export async function renderSurgeries(root) {
       expectedRevenue: Number(data.expectedRevenue),
       received: Number(data.received)
     };
+    const editingId = dialog.dataset.editId;
     submit.disabled = true;
-    submit.textContent = "Salvando...";
+    submit.textContent = editingId ? "Salvando alterações..." : "Salvando...";
     try {
-      await apiRequest("/surgeries", { method: "POST", body: payload });
+      if (editingId) {
+        await apiRequest(`/surgeries/${encodeURIComponent(editingId)}`, { method: "PATCH", body: payload });
+      } else {
+        await apiRequest("/surgeries", { method: "POST", body: payload });
+      }
       dialog.close();
-      window.showToast("Cirurgia registrada no banco de dados.");
+      window.showToast(editingId ? "Cirurgia atualizada." : "Cirurgia registrada no banco de dados.");
       await loadSurgeries(root);
     } catch (error) {
       window.showToast(error.message);
@@ -62,6 +66,41 @@ export async function renderSurgeries(root) {
   root.querySelector("#surgerySearch").addEventListener("input", event => renderList(root, event.target.value));
   await loadFormProcedures(root);
   await loadSurgeries(root);
+}
+
+function openCreateDialog(root) {
+  const dialog = root.querySelector("#surgeryDialog");
+  const form = root.querySelector("#surgeryForm");
+  form.reset();
+  dialog.dataset.editId = "";
+  root.querySelector("#surgeryEyebrow").textContent = "NOVO REGISTRO";
+  root.querySelector("#surgeryDialogTitle").textContent = "Registrar cirurgia";
+  form.querySelector('[type="submit"]').textContent = "Salvar registro";
+  dialog.showModal();
+}
+
+function openEditDialog(root, surgeryId) {
+  const item = surgeries.find(entry => entry.id === surgeryId);
+  if (!item) return;
+  const dialog = root.querySelector("#surgeryDialog");
+  const form = root.querySelector("#surgeryForm");
+  form.reset();
+  dialog.dataset.editId = item.id;
+  root.querySelector("#surgeryEyebrow").textContent = "EDITAR REGISTRO";
+  root.querySelector("#surgeryDialogTitle").textContent = "Editar cirurgia";
+  form.elements.patientRef.value = item.patientRef || "";
+  form.elements.procedureId.value = item.procedureId || "";
+  form.elements.specialty.value = item.specialty || "Coluna";
+  form.elements.hospital.value = item.hospital || "";
+  form.elements.payer.value = item.payer || "Convênio";
+  form.elements.status.value = item.status || "Solicitada";
+  form.elements.requestDate.value = item.requestDate || "";
+  form.elements.date.value = item.date || "";
+  form.elements.expectedRevenue.value = Number(item.expectedRevenue || 0);
+  form.elements.received.value = Number(item.received || 0);
+  form.elements.notes.value = item.notes || "";
+  form.querySelector('[type="submit"]').textContent = "Salvar alterações";
+  dialog.showModal();
 }
 
 async function loadFormProcedures(root) {
@@ -102,12 +141,32 @@ function renderList(root, searchTerm = "") {
   );
   root.querySelector("#surgeryCount").textContent = `${surgeries.length} registro(s)`;
   root.querySelector("#surgeryList").innerHTML = listMarkup(filtered);
+  bindActions(root);
   bindStatusChange(root);
 }
 
 function listMarkup(items) {
   if (!items.length) return `<div class="empty-state"><div class="empty-icon">✚</div><strong>Nenhuma cirurgia registrada</strong><p>Use o botão “Registrar cirurgia” para criar o primeiro registro de demonstração.</p></div>`;
-  return `<div class="table-wrap"><table><thead><tr><th>Procedimento</th><th>Hospital / origem</th><th>Data</th><th>Status</th><th>Recebido</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHTML(item.procedure)}</strong><small>${escapeHTML(item.patientRef || "Sem identificador")} · ${escapeHTML(item.specialty)}</small></td><td>${escapeHTML(item.hospital || "—")}<small>${escapeHTML(item.payer)}</small></td><td>${formatDate(item.date || item.requestDate)}</td><td><select class="inline-status" data-status-id="${escapeHTML(item.id)}" aria-label="Alterar status">${STATUSES.map(status => `<option ${status === item.status ? "selected" : ""}>${status}</option>`).join("")}</select></td><td>${formatCurrency(item.received)}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Procedimento</th><th>Hospital / origem</th><th>Data</th><th>Status</th><th>Recebido</th><th>Ações</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHTML(item.procedure)}</strong><small>${escapeHTML(item.patientRef || "Sem identificador")} · ${escapeHTML(item.specialty)}</small></td><td>${escapeHTML(item.hospital || "—")}<small>${escapeHTML(item.payer)}</small></td><td>${formatDate(item.date || item.requestDate)}</td><td><select class="inline-status" data-status-id="${escapeHTML(item.id)}" aria-label="Alterar status">${STATUSES.map(status => `<option ${status === item.status ? "selected" : ""}>${status}</option>`).join("")}</select></td><td>${formatCurrency(item.received)}</td><td><button class="text-button" data-edit-id="${escapeHTML(item.id)}">Editar</button> <button class="text-button danger" data-delete-id="${escapeHTML(item.id)}">Excluir</button></td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function bindActions(root) {
+  root.querySelectorAll("[data-edit-id]").forEach(button => button.addEventListener("click", () => openEditDialog(root, button.dataset.editId)));
+  root.querySelectorAll("[data-delete-id]").forEach(button => button.addEventListener("click", async () => {
+    const item = surgeries.find(entry => entry.id === button.dataset.deleteId);
+    if (!item) return;
+    const confirmed = window.confirm(`Excluir o registro "${item.procedure}"? Essa ação não poderá ser desfeita.`);
+    if (!confirmed) return;
+    button.disabled = true;
+    try {
+      await apiRequest(`/surgeries/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+      window.showToast("Cirurgia excluída.");
+      await loadSurgeries(root);
+    } catch (error) {
+      button.disabled = false;
+      window.showToast(error.message);
+    }
+  }));
 }
 
 function bindStatusChange(root) {
@@ -121,12 +180,15 @@ function bindStatusChange(root) {
         body: { status: select.value }
       });
       const item = surgeries.find(entry => entry.id === surgeryId);
-      if (item) item.status = select.value;
+      if (item) {
+        item.status = select.value;
+        if (select.value === "Recebida") item.received = Number(item.expectedRevenue) || 0;
+      }
       window.showToast("Status atualizado no banco de dados.");
+      renderList(root, root.querySelector("#surgerySearch")?.value || "");
     } catch (error) {
       if (previous) select.value = previous;
       window.showToast(error.message);
-    } finally {
       select.disabled = false;
     }
   }));
