@@ -1,4 +1,4 @@
-name: Validate backend schema
+name: Validate backend schema and migrations
 
 on:
   push:
@@ -18,9 +18,25 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: validation
+          POSTGRES_PASSWORD: validation
+          POSTGRES_DB: validation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U validation -d validation"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: backend
+    env:
+      DATABASE_URL: postgresql://validation:validation@localhost:5432/validation
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,9 +48,11 @@ jobs:
         run: npm install
       - name: Validate Prisma schema
         run: npx prisma validate
-        env:
-          DATABASE_URL: postgresql://validation:validation@localhost:5432/validation
       - name: Generate Prisma Client
         run: npx prisma generate
+      - name: Apply all migrations to disposable PostgreSQL
+        run: npx prisma migrate deploy
+      - name: Seed coding systems
+        run: npm run db:seed
       - name: Build TypeScript
         run: npm run build
