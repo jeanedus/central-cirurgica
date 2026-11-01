@@ -173,7 +173,10 @@ const updateStatus: RequestHandler = async (request, response) => {
     }
     const result = await prisma.surgery.updateMany({
       where: { id: surgeryId, organizationId },
-      data: { status: statusMap[parsed.data.status] }
+      data: {
+        status: statusMap[parsed.data.status],
+        ...(parsed.data.status === "Recebida" ? { received: (await prisma.surgery.findFirst({ where: { id: surgeryId, organizationId }, select: { expectedRevenue: true } }))?.expectedRevenue } : {})
+      }
     });
     if (!result.count) {
       response.status(404).json({ error: "Cirurgia não encontrada." });
