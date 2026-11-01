@@ -8,6 +8,7 @@ import { proceduresRouter } from "./modules/procedures/procedures.routes.js";
 import { procedureCodesRouter } from "./modules/procedure-codes/procedure-codes.routes.js";
 import { surgeriesRouter } from "./modules/surgeries/surgeries.routes.js";
 import { surgeryMaterialsRouter } from "./modules/surgery-materials/surgery-materials.routes.js";
+import { catalogsRouter } from "./modules/catalogs/catalogs.routes.js";
 
 const prisma = new PrismaClient();
 
@@ -39,6 +40,7 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api/procedures", proceduresRouter);
   app.use("/api/procedure-codes", procedureCodesRouter);
+  app.use("/api/catalogs", catalogsRouter);
   app.use("/api/surgeries", surgeriesRouter);
   app.use("/api/surgeries", surgeryMaterialsRouter);
 
