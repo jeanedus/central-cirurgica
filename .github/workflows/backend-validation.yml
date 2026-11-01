@@ -56,5 +56,7 @@ jobs:
         run: npm run db:seed
       - name: Check SIGTAP importer syntax
         run: node --check scripts/import-sigtap.js
+      - name: Validate SIGTAP fixed-width fixture without database writes
+        run: node scripts/import-sigtap.js scripts/fixtures/sigtap-mini --validate-only
       - name: Build TypeScript
         run: npm run build
