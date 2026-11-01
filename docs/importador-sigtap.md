@@ -40,7 +40,7 @@ O modo `--validate-only`:
 
 Os campos do SIGTAP são preservados como strings no JSON bruto/estruturado, evitando perda de zeros à esquerda e formatação original. Não se convertem valores monetários nem códigos de compatibilidade com base apenas na largura do campo.
 
-O importador não sobrescreve uma versão que já exista com o mesmo sistema e rótulo. Uma nova competência/edição deve gerar nova versão. Como controle de proveniência, toda fonte importada fica inicialmente como `OTHER`, com `sourceVerification: UNVERIFIED`; só deve ser classificada como catálogo oficial após conferência da origem e registro da URL e do checksum oficial.
+O importador não sobrescreve uma versão que já exista com o mesmo sistema e rótulo. Uma nova competência/edição deve gerar nova versão. Para a competência 202610, a fonte fica registrada como `OFFICIAL_CATALOG`, com proveniência explícita da cópia aceita pelo responsável do projeto: espelho RenatoKR/SIGTAP, cujo workflow documenta sincronização com o FTP do DATASUS. O metadado `sourceVerification: USER_ACCEPTED_MIRROR_COPY` deixa claro que a cópia foi aceita para uso no projeto, mas não houve comparação direta do hash com o servidor DATASUS. O checksum SHA-256 do ZIP é registrado separadamente do checksum dos TXT/layouts processados.
 
 ## Limitações conhecidas e controles
 
@@ -49,8 +49,8 @@ O importador não sobrescreve uma versão que já exista com o mesmo sistema e r
 3. Os relacionamentos são preservados como registros de dataset. A interpretação dos tipos de compatibilidade, exceções, habilitações, CBO, CID, serviços e modalidades deve ser implementada com base na documentação oficial antes de qualquer regra automática.
 4. O arquivo `tb_descricao.txt` é preservado como dataset independente; ainda não é mesclado automaticamente ao texto curto de `tb_procedimento.txt`.
 5. A importação real cria versão e lote antes de inserir os registros. Em caso de falha, lote e versão são marcados como FAILED; não há limpeza automática de dados parciais. A versão falha não deve ser reutilizada nem ativada.
-6. O pacote SIGTAP 202610 que foi analisado nesta etapa é uma cópia de referência fornecida na conversa, não uma captura autenticada do DATASUS. Antes de produção, baixar novamente da fonte oficial, registrar URL/data/arquivo/checksum e repetir o modo de validação.
-7. Nenhuma importação real foi executada nesta etapa; somente o parser e as migrations foram validados em CI.
+6. A cópia SIGTAP 202610 foi aceita pelo responsável do projeto como fonte de trabalho. O ZIP `TabelaUnificada_202610_v2610271043.zip` passou no teste CRC, contém 87 entradas e tem SHA-256 `525e5ef197da5133ed3177f42b56cb341057668af8da2fdc7f6674bcc25af5cd`. Os 41 arquivos de dados têm layouts correspondentes; foram verificados 395.908 registros, sem divergência de largura, e 5.039 códigos distintos em `tb_procedimento.txt`. O espelho informa sincronização automatizada com `ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads/`; ainda assim, não foi possível comparar o arquivo diretamente com o servidor oficial. A classificação e os metadados preservam essa distinção.
+7. A validação estrutural da cópia foi executada nesta etapa; a importação no banco da instalação local ainda depende da execução do comando pelo operador. A validação de CI não substitui essa importação nem a revisão semântica dos relacionamentos SIGTAP.
 
 ## Verificações automatizadas
 
