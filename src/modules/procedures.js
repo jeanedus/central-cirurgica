@@ -18,7 +18,13 @@ export async function renderProcedures(root) {
         <select class="inline-status" id="codeSystemFilter" aria-label="Filtrar tabela"><option value="">TUSS e SIGTAP</option><option value="TUSS">TUSS</option><option value="SIGTAP">SIGTAP</option></select>
       </div>
       <div id="codeList"><div class="empty-state">Carregando códigos...</div></div>
-      <p class="muted">Os códigos são cadastrados pela organização. Confira sempre a versão vigente das tabelas oficiais antes de utilizá-los em solicitações.</p>
+      <div id="sigtapCatalogPanel" hidden style="margin-top:20px;border-top:1px solid var(--line);padding-top:18px">
+        <div class="panel-heading"><div><h2>Catálogo oficial SIGTAP</h2><p class="muted" id="sigtapVersion">Verificando versão disponível...</p></div><button class="button button-secondary button-small" id="refreshSigtap">Atualizar</button></div>
+        <div class="panel-heading"><input class="search-input" id="sigtapSearch" placeholder="Buscar código ou descrição SIGTAP..." /></div>
+        <div id="sigtapList"><div class="empty-state">Carregando catálogo...</div></div>
+        <div class="panel-heading" style="margin-top:12px"><span class="muted" id="sigtapPageInfo"></span><div><button class="button button-secondary button-small" id="sigtapPrev">Anterior</button> <button class="button button-secondary button-small" id="sigtapNext">Próxima</button></div></div>
+      </div>
+      <p class="muted">O catálogo oficial versionado é separado dos códigos cadastrados manualmente pela organização.</p>
     </section>
     <dialog class="modal modal-wide" id="procedureDialog"><form id="procedureForm"><div class="modal-heading"><div><div class="eyebrow">NOVO CADASTRO</div><h2>Cadastrar procedimento</h2></div><button type="button" class="icon-button" id="closeProcedure" aria-label="Fechar">×</button></div>
       <label>Nome do procedimento<input name="name" required maxlength="160" placeholder="Ex.: Artrodese lombar posterior" /></label>
@@ -95,7 +101,17 @@ export async function renderProcedures(root) {
 
   root.querySelector("#procedureSearch").addEventListener("input", event => renderProcedureList(root, event.target.value));
   root.querySelector("#codeSearch").addEventListener("input", () => renderCodeList(root));
-  root.querySelector("#codeSystemFilter").addEventListener("change", () => renderCodeList(root));
+  root.querySelector("#codeSystemFilter").addEventListener("change", async () => {
+    renderCodeList(root);
+    const panel = root.querySelector("#sigtapCatalogPanel");
+    const showCatalog = root.querySelector("#codeSystemFilter").value === "SIGTAP";
+    panel.hidden = !showCatalog;
+    if (showCatalog) await loadSigtapCatalog(root, 1);
+  });
+  root.querySelector("#sigtapSearch").addEventListener("input", () => loadSigtapCatalog(root, 1));
+  root.querySelector("#refreshSigtap").addEventListener("click", () => loadSigtapCatalog(root, 1));
+  root.querySelector("#sigtapPrev").addEventListener("click", () => loadSigtapCatalog(root, Math.max(1, Number(root.querySelector("#sigtapList").dataset.page || 1) - 1)));
+  root.querySelector("#sigtapNext").addEventListener("click", () => loadSigtapCatalog(root, Number(root.querySelector("#sigtapList").dataset.page || 1) + 1));
 
   await loadProcedures(root);
   await loadCodes(root);
@@ -184,6 +200,42 @@ function renderCodeList(root) {
       button.disabled = false;
     }
   }));
+}
+
+async function loadSigtapCatalog(root, page = 1) {
+  const list = root.querySelector("#sigtapList");
+  const versionLabel = root.querySelector("#sigtapVersion");
+  list.innerHTML = '<div class="empty-state">Carregando tabela SIGTAP...</div>';
+  versionLabel.textContent = "Consultando catálogo versionado...";
+  try {
+    const status = await apiRequest("/catalogs/SIGTAP");
+    if (!status.available) {
+      versionLabel.textContent = "Nenhuma competência oficial importada e validada.";
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">▤</div><strong>Tabela SIGTAP ainda não disponível</strong><p>A tela está conectada. Falta importar uma competência cuja origem oficial tenha sido verificada. Os códigos cadastrados manualmente continuam disponíveis na tabela acima.</p></div>';
+      root.querySelector("#sigtapPageInfo").textContent = "";
+      root.querySelector("#sigtapPrev").disabled = true;
+      root.querySelector("#sigtapNext").disabled = true;
+      return;
+    }
+    const search = root.querySelector("#sigtapSearch").value.trim();
+    const query = new URLSearchParams({ page: String(page), pageSize: "50" });
+    if (search) query.set("search", search);
+    const result = await apiRequest(`/catalogs/SIGTAP/codes?${query.toString()}`);
+    const version = result.version;
+    versionLabel.textContent = `Competência ${version.competence || version.versionLabel} · ${Number(result.total).toLocaleString("pt-BR")} procedimento(s) encontrado(s)`;
+    list.dataset.page = String(result.page || 1);
+    if (!result.codes.length) {
+      list.innerHTML = '<div class="empty-state"><strong>Nenhum procedimento encontrado</strong><p>Tente outro código ou termo de busca.</p></div>';
+    } else {
+      list.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Código SIGTAP</th><th>Descrição</th><th>Situação</th></tr></thead><tbody>${result.codes.map(item => `<tr><td><strong>${escapeHTML(item.code)}</strong></td><td style="white-space:normal;min-width:260px">${escapeHTML(item.description)}</td><td>${item.active ? "Ativo" : "Inativo"}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+    root.querySelector("#sigtapPageInfo").textContent = `Página ${result.page} de ${Math.max(1, result.pages)}`;
+    root.querySelector("#sigtapPrev").disabled = result.page <= 1;
+    root.querySelector("#sigtapNext").disabled = result.page >= result.pages;
+  } catch (error) {
+    versionLabel.textContent = "Falha ao consultar a tabela.";
+    list.innerHTML = `<div class="empty-state"><strong>Não foi possível abrir a tabela SIGTAP</strong><p>${escapeHTML(error.message)}</p></div>`;
+  }
 }
 
 function openCodeDialog(root, codeId = "") {
