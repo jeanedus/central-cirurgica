@@ -35,6 +35,13 @@ enum PayerType {
   PRIVATE
 }
 
+enum MaterialAuthorizationStatus {
+  PENDING
+  AUTHORIZED
+  PARTIALLY_AUTHORIZED
+  DENIED
+}
+
 model User {
   id           String       @id @default(uuid()) @db.Uuid
   email        String       @unique @db.VarChar(254)
@@ -58,6 +65,7 @@ model Organization {
   memberships Membership[]
   procedures  Procedure[]
   surgeries   Surgery[]
+  materials   SurgeryMaterial[]
 
   @@map("organizations")
 }
@@ -111,10 +119,33 @@ model Surgery {
   updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   procedure        Procedure?   @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  materials        SurgeryMaterial[]
 
   @@index([organizationId, surgeryDate])
   @@index([organizationId, status])
   @@map("surgeries")
+}
+
+model SurgeryMaterial {
+  id                  String                     @id @default(uuid()) @db.Uuid
+  organizationId      String                     @map("organization_id") @db.Uuid
+  surgeryId           String                     @map("surgery_id") @db.Uuid
+  category            String                     @default("OPME") @db.VarChar(80)
+  description         String                     @db.VarChar(240)
+  manufacturer        String?                    @db.VarChar(160)
+  supplier            String?                    @db.VarChar(160)
+  referenceCode       String?                    @map("reference_code") @db.VarChar(120)
+  quantity            Int                        @default(1)
+  unitPrice           Decimal                    @default(0) @map("unit_price") @db.Decimal(12, 2)
+  authorizationStatus MaterialAuthorizationStatus @default(PENDING) @map("authorization_status")
+  notes               String?
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization        Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  surgery             Surgery                    @relation(fields: [surgeryId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, surgeryId])
+  @@map("surgery_materials")
 }
 
 model AuditLog {
