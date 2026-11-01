@@ -40,7 +40,7 @@ O modo `--validate-only`:
 
 Os campos do SIGTAP são preservados como strings no JSON bruto/estruturado, evitando perda de zeros à esquerda e formatação original. Não se convertem valores monetários nem códigos de compatibilidade com base apenas na largura do campo.
 
-O importador não sobrescreve uma versão que já exista com o mesmo sistema e rótulo. Uma nova competência/edição deve gerar nova versão.
+O importador não sobrescreve uma versão que já exista com o mesmo sistema e rótulo. Uma nova competência/edição deve gerar nova versão. Como controle de proveniência, toda fonte importada fica inicialmente como `OTHER`, com `sourceVerification: UNVERIFIED`; só deve ser classificada como catálogo oficial após conferência da origem e registro da URL e do checksum oficial.
 
 ## Limitações conhecidas e controles
 
