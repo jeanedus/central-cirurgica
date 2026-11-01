@@ -50,7 +50,7 @@ async function main() {
   const root = path.resolve(inputDir);
   if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) throw new Error("Diretório de entrada não encontrado.");
   const files = fs.readdirSync(root).filter((f) => f.toLowerCase().endsWith(".txt")).sort();
-  const dataFiles = files.filter((f) => !f.toLowerCase().endsWith("_layout.txt") && f.toLowerCase() !== "layout.txt");
+  const dataFiles = files.filter((f) => !f.toLowerCase().endsWith("_layout.txt") && f.toLowerCase() !== "layout.txt" && f.toLowerCase() !== "leia_me.txt");
   const layoutFiles = new Set(files.filter((f) => f.toLowerCase().endsWith("_layout.txt")));
   const missingLayouts = dataFiles.filter((f) => !layoutFiles.has(f.replace(/\.txt$/i, "_layout.txt")));
   if (missingLayouts.length) throw new Error("Arquivos sem layout correspondente: " + missingLayouts.join(", "));
