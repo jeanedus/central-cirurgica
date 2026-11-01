@@ -11,7 +11,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "node prisma/seed.js",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:import:sigtap": "node scripts/import-sigtap.js"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
