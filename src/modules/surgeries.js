@@ -199,6 +199,7 @@ function listMarkup(items) {
 }
 
 function bindActions(root) {
+  root.querySelectorAll("[data-materials-id]").forEach(button => button.addEventListener("click", () => openMaterialsDialog(root, button.dataset.materialsId)));
   root.querySelectorAll("[data-edit-id]").forEach(button => button.addEventListener("click", () => openEditDialog(root, button.dataset.editId)));
   root.querySelectorAll("[data-delete-id]").forEach(button => button.addEventListener("click", async () => {
     const item = surgeries.find(entry => entry.id === button.dataset.deleteId);
