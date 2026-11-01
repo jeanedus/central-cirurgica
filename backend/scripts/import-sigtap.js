@@ -113,12 +113,12 @@ async function main() {
 
   const source = await prisma.sourceDocument.create({
     data: {
-      type: SourceDocumentType.OFFICIAL_CATALOG,
-      title: `SIGTAP competência ${competence}`,
-      issuer: "Ministério da Saúde / DATASUS",
+      type: SourceDocumentType.OTHER,
+      title: `SIGTAP competência ${competence} (origem pendente de verificação)`,
+      issuer: "Fonte do pacote ainda não verificada",
       edition: label,
       checksum,
-      metadata: { importSource: "fixed-width TXT export", files: manifest.length }
+      metadata: { importSource: "fixed-width TXT export", files: manifest.length, sourceVerification: "UNVERIFIED" }
     }
   });
 
