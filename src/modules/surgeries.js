@@ -40,7 +40,6 @@ export async function renderSurgeries(root) {
   const dialog = root.querySelector("#surgeryDialog");
   const materialsDialog = root.querySelector("#materialsDialog");
   const materialFormDialog = root.querySelector("#materialFormDialog");
-  let activeSurgeryId = "";
   const form = root.querySelector("#surgeryForm");
   root.querySelector("#addSurgery").addEventListener("click", () => openCreateDialog(root));
   root.querySelector("#closeSurgery").addEventListener("click", () => dialog.close());
@@ -60,6 +59,8 @@ export async function renderSurgeries(root) {
     submit.disabled = true;
     submit.textContent = "Salvando...";
     try {
+      const activeSurgeryId = materialsDialog.dataset.surgeryId;
+      if (!activeSurgeryId) throw new Error("Selecione uma cirurgia antes de cadastrar materiais.");
       const base = `/surgeries/${encodeURIComponent(activeSurgeryId)}/materials`;
       if (editingId) await apiRequest(`${base}/${encodeURIComponent(editingId)}`, { method: "PATCH", body: payload });
       else await apiRequest(base, { method: "POST", body: payload });
