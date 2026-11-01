@@ -10,12 +10,20 @@ export function setAccessToken(token) {
 
 export function clearAccessToken() {
   sessionStorage.removeItem("cc_access_token");
+  sessionStorage.removeItem("cc_organization_id");
+}
+
+export function setActiveOrganization(organizationId) {
+  if (organizationId) sessionStorage.setItem("cc_organization_id", organizationId);
+  else sessionStorage.removeItem("cc_organization_id");
 }
 
 export async function apiRequest(path, { method = "GET", body, token = getAccessToken() } = {}) {
   const headers = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
+  const organizationId = sessionStorage.getItem("cc_organization_id");
+  if (organizationId) headers["X-Organization-Id"] = organizationId;
 
   let response;
   try {
