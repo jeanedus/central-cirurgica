@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import { PrismaClient } from "@prisma/client";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { proceduresRouter } from "./modules/procedures/procedures.routes.js";
+import { procedureCodesRouter } from "./modules/procedure-codes/procedure-codes.routes.js";
 import { surgeriesRouter } from "./modules/surgeries/surgeries.routes.js";
 import { surgeryMaterialsRouter } from "./modules/surgery-materials/surgery-materials.routes.js";
 
@@ -37,6 +38,7 @@ export function createApp() {
 
   app.use("/api/auth", authRouter);
   app.use("/api/procedures", proceduresRouter);
+  app.use("/api/procedure-codes", procedureCodesRouter);
   app.use("/api/surgeries", surgeriesRouter);
   app.use("/api/surgeries", surgeryMaterialsRouter);
 
