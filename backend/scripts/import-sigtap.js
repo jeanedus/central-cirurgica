@@ -44,7 +44,7 @@ function chunk(items, size) {
 }
 
 async function main() {
-  if (!inputDir || !competenceArg || !/^\d{6}$/.test(competenceArg)) {
+  if (!inputDir || (!validateOnly && (!competenceArg || !/^\d{6}$/.test(competenceArg)))) {
     throw new Error("Uso: node scripts/import-sigtap.js <diretorio-extraido> <AAAAMM> [rótulo-versão]");
   }
   const root = path.resolve(inputDir);
