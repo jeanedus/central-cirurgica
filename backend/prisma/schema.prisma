@@ -274,6 +274,7 @@ model CatalogVersion {
   sourceDocument   SourceDocument?       @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
   codes            CatalogCode[]
   importBatches    CatalogImportBatch[]
+  datasetRecords   CatalogDatasetRecord[]
 
   @@unique([codingSystemId, versionLabel])
   @@index([codingSystemId, competence])
@@ -320,4 +321,19 @@ model CatalogImportBatch {
   @@index([catalogVersionId, createdAt])
   @@index([status, createdAt])
   @@map("catalog_import_batches")
+}
+
+
+model CatalogDatasetRecord {
+  id               String         @id @default(uuid()) @db.Uuid
+  catalogVersionId String         @map("catalog_version_id") @db.Uuid
+  datasetName      String         @map("dataset_name") @db.VarChar(100)
+  sourceLine       Int            @map("source_line")
+  data             Json
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  catalogVersion   CatalogVersion @relation(fields: [catalogVersionId], references: [id], onDelete: Restrict)
+
+  @@unique([catalogVersionId, datasetName, sourceLine])
+  @@index([catalogVersionId, datasetName])
+  @@map("catalog_dataset_records")
 }
