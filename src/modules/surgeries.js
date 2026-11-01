@@ -19,13 +19,60 @@ export async function renderSurgeries(root) {
       <div class="form-row"><label>Valor previsto / faturado (R$)<input type="number" name="expectedRevenue" min="0" step="0.01" value="0" required /></label><label>Valor recebido (R$)<input type="number" name="received" min="0" step="0.01" value="0" required /></label></div>
       <label>Observações<textarea name="notes" rows="2" maxlength="5000" placeholder="Informações administrativas sem dados clínicos identificáveis"></textarea></label>
       <div class="modal-actions"><button type="button" class="button button-secondary" id="cancelSurgery">Cancelar</button><button class="button button-primary" type="submit">Salvar registro</button></div>
-    </form></dialog>`;
+    </form></dialog>
+    <dialog class="modal modal-wide" id="materialsDialog">
+      <div class="modal-heading"><div><div class="eyebrow">MATERIAIS DA CIRURGIA</div><h2 id="materialsTitle">OPME e materiais</h2><p class="muted" id="materialsSubtitle"></p></div><button type="button" class="icon-button" id="closeMaterials" aria-label="Fechar">×</button></div>
+      <div class="panel-heading"><div><strong id="materialsTotal">Total: R$ 0,00</strong><p class="muted">Valores estimados com base na quantidade e no preço unitário.</p></div><button type="button" class="button button-primary" id="addMaterial">＋ Adicionar material</button></div>
+      <div id="materialsList"><div class="empty-state">Carregando materiais...</div></div>
+    </dialog>
+    <dialog class="modal modal-wide" id="materialFormDialog">
+      <form id="materialForm">
+        <div class="modal-heading"><div><div class="eyebrow" id="materialEyebrow">NOVO ITEM</div><h2 id="materialFormTitle">Adicionar material</h2></div><button type="button" class="icon-button" id="closeMaterialForm" aria-label="Fechar">×</button></div>
+        <div class="form-row"><label>Categoria<select name="category"><option>OPME</option><option>Implante</option><option>Instrumental</option><option>Descartável</option><option>Outro</option></select></label><label>Descrição do material<input name="description" required maxlength="240" placeholder="Ex.: Parafuso pedicular poliaxial" /></label></div>
+        <div class="form-row"><label>Fabricante<input name="manufacturer" maxlength="160" /></label><label>Fornecedor / distribuidor<input name="supplier" maxlength="160" /></label></div>
+        <div class="form-row"><label>Código / referência<input name="referenceCode" maxlength="120" /></label><label>Status de autorização<select name="authorizationStatus"><option>Pendente</option><option>Autorizado</option><option>Parcialmente autorizado</option><option>Negado</option></select></label></div>
+        <div class="form-row"><label>Quantidade<input name="quantity" type="number" min="1" step="1" value="1" required /></label><label>Valor unitário (R$)<input name="unitPrice" type="number" min="0" step="0.01" value="0" required /></label></div>
+        <label>Observações<textarea name="notes" rows="2" maxlength="3000"></textarea></label>
+        <div class="modal-actions"><button type="button" class="button button-secondary" id="cancelMaterial">Cancelar</button><button class="button button-primary" type="submit">Salvar material</button></div>
+      </form>
+    </dialog>`;
 
   const dialog = root.querySelector("#surgeryDialog");
+  const materialsDialog = root.querySelector("#materialsDialog");
+  const materialFormDialog = root.querySelector("#materialFormDialog");
+  let activeSurgeryId = "";
   const form = root.querySelector("#surgeryForm");
   root.querySelector("#addSurgery").addEventListener("click", () => openCreateDialog(root));
   root.querySelector("#closeSurgery").addEventListener("click", () => dialog.close());
   root.querySelector("#cancelSurgery").addEventListener("click", () => dialog.close());
+  root.querySelector("#closeMaterials").addEventListener("click", () => materialsDialog.close());
+  root.querySelector("#addMaterial").addEventListener("click", () => openMaterialForm(root));
+  root.querySelector("#closeMaterialForm").addEventListener("click", () => materialFormDialog.close());
+  root.querySelector("#cancelMaterial").addEventListener("click", () => materialFormDialog.close());
+
+  root.querySelector("#materialForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const materialForm = event.currentTarget;
+    const submit = materialForm.querySelector('[type="submit"]');
+    const data = Object.fromEntries(new FormData(materialForm));
+    const payload = { ...data, quantity: Number(data.quantity), unitPrice: Number(data.unitPrice) };
+    const editingId = materialFormDialog.dataset.editId;
+    submit.disabled = true;
+    submit.textContent = "Salvando...";
+    try {
+      const base = `/surgeries/${encodeURIComponent(activeSurgeryId)}/materials`;
+      if (editingId) await apiRequest(`${base}/${encodeURIComponent(editingId)}`, { method: "PATCH", body: payload });
+      else await apiRequest(base, { method: "POST", body: payload });
+      materialFormDialog.close();
+      window.showToast(editingId ? "Material atualizado." : "Material adicionado.");
+      await loadMaterials(root);
+    } catch (error) {
+      window.showToast(error.message);
+    } finally {
+      submit.disabled = false;
+      submit.textContent = "Salvar material";
+    }
+  });
 
   form.addEventListener("submit", async event => {
     event.preventDefault();
@@ -147,7 +194,7 @@ function renderList(root, searchTerm = "") {
 
 function listMarkup(items) {
   if (!items.length) return `<div class="empty-state"><div class="empty-icon">✚</div><strong>Nenhuma cirurgia registrada</strong><p>Use o botão “Registrar cirurgia” para criar o primeiro registro de demonstração.</p></div>`;
-  return `<div class="table-wrap"><table><thead><tr><th>Procedimento</th><th>Hospital / origem</th><th>Data</th><th>Status</th><th>Recebido</th><th>Ações</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHTML(item.procedure)}</strong><small>${escapeHTML(item.patientRef || "Sem identificador")} · ${escapeHTML(item.specialty)}</small></td><td>${escapeHTML(item.hospital || "—")}<small>${escapeHTML(item.payer)}</small></td><td>${formatDate(item.date || item.requestDate)}</td><td><select class="inline-status" data-status-id="${escapeHTML(item.id)}" aria-label="Alterar status">${STATUSES.map(status => `<option ${status === item.status ? "selected" : ""}>${status}</option>`).join("")}</select></td><td>${formatCurrency(item.received)}</td><td><button class="text-button" data-edit-id="${escapeHTML(item.id)}">Editar</button> <button class="text-button danger" data-delete-id="${escapeHTML(item.id)}">Excluir</button></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Procedimento</th><th>Hospital / origem</th><th>Data</th><th>Status</th><th>Recebido</th><th>Ações</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHTML(item.procedure)}</strong><small>${escapeHTML(item.patientRef || "Sem identificador")} · ${escapeHTML(item.specialty)}</small></td><td>${escapeHTML(item.hospital || "—")}<small>${escapeHTML(item.payer)}</small></td><td>${formatDate(item.date || item.requestDate)}</td><td><select class="inline-status" data-status-id="${escapeHTML(item.id)}" aria-label="Alterar status">${STATUSES.map(status => `<option ${status === item.status ? "selected" : ""}>${status}</option>`).join("")}</select></td><td>${formatCurrency(item.received)}</td><td><button class="text-button" data-materials-id="${escapeHTML(item.id)}">OPME</button> <button class="text-button" data-edit-id="${escapeHTML(item.id)}">Editar</button> <button class="text-button danger" data-delete-id="${escapeHTML(item.id)}">Excluir</button></td></tr>`).join("")}</tbody></table></div>`;
 }
 
 function bindActions(root) {
@@ -167,6 +214,82 @@ function bindActions(root) {
       window.showToast(error.message);
     }
   }));
+}
+
+
+let surgeryMaterials = [];
+
+async function openMaterialsDialog(root, surgeryId) {
+  const surgery = surgeries.find(item => item.id === surgeryId);
+  if (!surgery) return;
+  root.querySelector("#materialsDialog").dataset.surgeryId = surgeryId;
+  root.querySelector("#materialsTitle").textContent = "OPME e materiais";
+  root.querySelector("#materialsSubtitle").textContent = surgery.procedure + " · " + (surgery.hospital || "Hospital não informado");
+  root.querySelector("#materialsDialog").showModal();
+  await loadMaterials(root);
+}
+
+async function loadMaterials(root) {
+  const dialog = root.querySelector("#materialsDialog");
+  const surgeryId = dialog.dataset.surgeryId;
+  if (!surgeryId) return;
+  const list = root.querySelector("#materialsList");
+  list.innerHTML = '<div class="empty-state">Carregando materiais...</div>';
+  try {
+    const result = await apiRequest(`/surgeries/${encodeURIComponent(surgeryId)}/materials`);
+    surgeryMaterials = result.materials || [];
+    renderMaterialsList(root);
+  } catch (error) {
+    list.innerHTML = `<div class="empty-state">${escapeHTML(error.message)}</div>`;
+  }
+}
+
+function renderMaterialsList(root) {
+  const list = root.querySelector("#materialsList");
+  const total = surgeryMaterials.reduce((sum, item) => sum + Number(item.totalPrice || 0), 0);
+  root.querySelector("#materialsTotal").textContent = "Total: " + formatCurrency(total);
+  if (!surgeryMaterials.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">＋</div><strong>Nenhum material cadastrado</strong><p>Adicione OPME, implantes e outros materiais utilizados ou solicitados nesta cirurgia.</p></div>';
+    return;
+  }
+  list.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Material</th><th>Qtd.</th><th>Unitário</th><th>Total</th><th>Autorização</th><th>Ações</th></tr></thead><tbody>${surgeryMaterials.map(item => `<tr><td><strong>${escapeHTML(item.description)}</strong><small>${escapeHTML(item.category)} · ${escapeHTML(item.manufacturer || "Fabricante não informado")} · Ref.: ${escapeHTML(item.referenceCode || "—")}</small></td><td>${Number(item.quantity)}</td><td>${formatCurrency(item.unitPrice)}</td><td><strong>${formatCurrency(item.totalPrice)}</strong></td><td><span class="status-badge">${escapeHTML(item.authorizationStatus)}</span></td><td><button class="text-button" data-edit-material="${escapeHTML(item.id)}">Editar</button> <button class="text-button danger" data-delete-material="${escapeHTML(item.id)}">Excluir</button></td></tr>`).join("")}</tbody></table></div>`;
+  list.querySelectorAll("[data-edit-material]").forEach(button => button.addEventListener("click", () => openMaterialForm(root, button.dataset.editMaterial)));
+  list.querySelectorAll("[data-delete-material]").forEach(button => button.addEventListener("click", async () => {
+    const item = surgeryMaterials.find(entry => entry.id === button.dataset.deleteMaterial);
+    if (!item || !window.confirm(`Excluir o material "${item.description}"?`)) return;
+    button.disabled = true;
+    try {
+      await apiRequest(`/surgeries/${encodeURIComponent(root.querySelector("#materialsDialog").dataset.surgeryId)}/materials/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+      window.showToast("Material excluído.");
+      await loadMaterials(root);
+    } catch (error) {
+      button.disabled = false;
+      window.showToast(error.message);
+    }
+  }));
+}
+
+function openMaterialForm(root, materialId = "") {
+  const dialog = root.querySelector("#materialFormDialog");
+  const form = root.querySelector("#materialForm");
+  form.reset();
+  dialog.dataset.editId = materialId;
+  const item = surgeryMaterials.find(entry => entry.id === materialId);
+  root.querySelector("#materialEyebrow").textContent = item ? "EDITAR ITEM" : "NOVO ITEM";
+  root.querySelector("#materialFormTitle").textContent = item ? "Editar material" : "Adicionar material";
+  if (item) {
+    form.elements.category.value = item.category || "OPME";
+    form.elements.description.value = item.description || "";
+    form.elements.manufacturer.value = item.manufacturer || "";
+    form.elements.supplier.value = item.supplier || "";
+    form.elements.referenceCode.value = item.referenceCode || "";
+    form.elements.authorizationStatus.value = item.authorizationStatus || "Pendente";
+    form.elements.quantity.value = item.quantity || 1;
+    form.elements.unitPrice.value = Number(item.unitPrice || 0);
+    form.elements.notes.value = item.notes || "";
+  }
+  form.querySelector('[type="submit"]').textContent = item ? "Salvar alterações" : "Salvar material";
+  dialog.showModal();
 }
 
 function bindStatusChange(root) {
