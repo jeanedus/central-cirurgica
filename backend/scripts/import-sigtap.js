@@ -113,12 +113,21 @@ async function main() {
 
   const source = await prisma.sourceDocument.create({
     data: {
-      type: SourceDocumentType.OTHER,
-      title: `SIGTAP competência ${competence} (origem pendente de verificação)`,
-      issuer: "Fonte do pacote ainda não verificada",
+      type: SourceDocumentType.OFFICIAL_CATALOG,
+      title: `SIGTAP competência ${competence} — cópia validada via espelho DATASUS`,
+      issuer: "DATASUS/SIGTAP — cópia obtida por espelho automatizado do FTP oficial",
       edition: label,
       checksum,
-      metadata: { importSource: "fixed-width TXT export", files: manifest.length, sourceVerification: "UNVERIFIED" }
+      metadata: {
+        importSource: "fixed-width TXT export",
+        mirrorRepository: "https://github.com/RenatoKR/SIGTAP",
+        mirrorWorkflowSource: "ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads/",
+        archiveFile: "TabelaUnificada_202610_v2610271043.zip",
+        archiveSha256: "525e5ef197da5133ed3177f42b56cb341057668af8da2fdc7f6674bcc25af5cd",
+        files: manifest.length,
+        sourceVerification: "USER_ACCEPTED_MIRROR_COPY",
+        sourceVerificationNote: "Cópia aceita pelo responsável do projeto após validação estrutural; não houve comparação direta do hash com o servidor DATASUS."
+      }
     }
   });
 
