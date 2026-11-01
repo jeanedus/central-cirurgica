@@ -5,6 +5,7 @@ import { PrismaClient, CodingSystemKey, CatalogVersionStatus, CatalogImportStatu
 
 const prisma = new PrismaClient();
 const [inputDir, competenceArg, versionArg] = process.argv.slice(2);
+const validateOnly = competenceArg === "--validate-only";
 
 function fail(message) {
   console.error(message);
@@ -79,6 +80,24 @@ async function main() {
     parsedDatasets.push({ name: file.replace(/\.txt$/i, ""), records });
     totalRows += records.length;
     manifest.push({ file, records: records.length, fields: layout.length, width: Math.max(...layout.map((f) => f.end)) });
+  }
+
+  if (validateOnly) {
+    const procedureDataset = parsedDatasets.find((d) => d.name === "tb_procedimento");
+    if (!procedureDataset) throw new Error("tb_procedimento.txt não foi encontrado.");
+    const codes = procedureDataset.records.map((r) => r.CO_PROCEDIMENTO);
+    if (codes.some((code) => !/^\\d{10}$/.test(code))) throw new Error("Há código de procedimento fora do padrão de 10 dígitos.");
+    if (new Set(codes).size !== codes.length) throw new Error("Há códigos duplicados em tb_procedimento.txt.");
+    console.log(JSON.stringify({
+      status: "validated_only",
+      datasets: manifest,
+      totalRecords: totalRows,
+      procedureCodes: codes.length,
+      uniqueProcedureCodes: new Set(codes).size,
+      checksum: hash.copy().digest("hex"),
+      note: "Nenhuma conexão com banco ou gravação foi realizada."
+    }, null, 2));
+    return;
   }
 
   const competence = competenceArg;
