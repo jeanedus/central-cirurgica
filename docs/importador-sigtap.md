@@ -59,4 +59,4 @@ Workflow: `.github/workflows/backend-validation.yml`
 Verifica schema Prisma, geração do client, aplicação de todas as migrations em PostgreSQL descartável, seed, sintaxe do importador e build TypeScript.
 
 Execução aprovada em 01/11/2026:
-https://github.com/jeanedus/central-cirurgica/actions/runs/41360897420
+https://github.com/jeanedus/central-cirurgica/actions/runs/41361009877
