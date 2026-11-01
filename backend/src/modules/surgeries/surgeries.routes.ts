@@ -188,9 +188,119 @@ const updateStatus: RequestHandler = async (request, response) => {
   }
 };
 
+
+const update: RequestHandler = async (request, response) => {
+  const organizationId = request.header("x-organization-id");
+  const rawId = request.params.id;
+  const surgeryId = Array.isArray(rawId) ? rawId[0] : rawId;
+  const parsed = surgerySchema.safeParse(request.body);
+  if (!request.authUserId || !organizationId) {
+    response.status(400).json({ error: "Organização ativa não informada." });
+    return;
+  }
+  if (!surgeryId || !parsed.success) {
+    response.status(400).json({ error: "Identificador ou campos da cirurgia inválidos.", details: parsed.success ? undefined : parsed.error.flatten().fieldErrors });
+    return;
+  }
+  try {
+    const membership = await getMembership(request.authUserId, organizationId);
+    if (!membership) {
+      response.status(403).json({ error: "Você não tem acesso a esta organização." });
+      return;
+    }
+    if (!["OWNER", "ADMIN", "DOCTOR"].includes(membership.role)) {
+      response.status(403).json({ error: "Seu perfil não permite editar cirurgias." });
+      return;
+    }
+    const existing = await prisma.surgery.findFirst({ where: { id: surgeryId, organizationId }, select: { id: true } });
+    if (!existing) {
+      response.status(404).json({ error: "Cirurgia não encontrada." });
+      return;
+    }
+    let procedureId: string | null = null;
+    let procedureSnapshot = parsed.data.procedure;
+    if (parsed.data.procedureId) {
+      const procedure = await prisma.procedure.findFirst({
+        where: { id: parsed.data.procedureId, organizationId },
+        select: { id: true, name: true }
+      });
+      if (!procedure) {
+        response.status(400).json({ error: "O procedimento selecionado não pertence à sua organização." });
+        return;
+      }
+      procedureId = procedure.id;
+      procedureSnapshot = procedure.name;
+    }
+    const received = parsed.data.status === "Recebida"
+      ? Math.max(parsed.data.received, parsed.data.expectedRevenue)
+      : parsed.data.received;
+    await prisma.surgery.update({
+      where: { id: surgeryId },
+      data: {
+        procedureId,
+        procedureSnapshot,
+        internalReference: parsed.data.patientRef || null,
+        specialty: parsed.data.specialty,
+        hospital: parsed.data.hospital || null,
+        payer: payerMap[parsed.data.payer],
+        status: statusMap[parsed.data.status],
+        requestDate: parsed.data.requestDate ? new Date(`${parsed.data.requestDate}T12:00:00.000Z`) : null,
+        surgeryDate: parsed.data.date ? new Date(`${parsed.data.date}T12:00:00.000Z`) : null,
+        expectedRevenue: new Prisma.Decimal(parsed.data.expectedRevenue),
+        received: new Prisma.Decimal(received),
+        notes: parsed.data.notes || null
+      }
+    });
+    await prisma.auditLog.create({
+      data: { userId: request.authUserId, action: "SURGERY_UPDATED", entity: "Surgery", entityId: surgeryId }
+    });
+    response.json({ success: true });
+  } catch {
+    response.status(500).json({ error: "Não foi possível editar a cirurgia." });
+  }
+};
+
+const remove: RequestHandler = async (request, response) => {
+  const organizationId = request.header("x-organization-id");
+  const rawId = request.params.id;
+  const surgeryId = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!request.authUserId || !organizationId) {
+    response.status(400).json({ error: "Organização ativa não informada." });
+    return;
+  }
+  if (!surgeryId) {
+    response.status(400).json({ error: "Identificador da cirurgia inválido." });
+    return;
+  }
+  try {
+    const membership = await getMembership(request.authUserId, organizationId);
+    if (!membership) {
+      response.status(403).json({ error: "Você não tem acesso a esta organização." });
+      return;
+    }
+    if (!["OWNER", "ADMIN", "DOCTOR"].includes(membership.role)) {
+      response.status(403).json({ error: "Seu perfil não permite excluir cirurgias." });
+      return;
+    }
+    const result = await prisma.surgery.deleteMany({ where: { id: surgeryId, organizationId } });
+    if (!result.count) {
+      response.status(404).json({ error: "Cirurgia não encontrada." });
+      return;
+    }
+    await prisma.auditLog.create({
+      data: { userId: request.authUserId, action: "SURGERY_DELETED", entity: "Surgery", entityId: surgeryId }
+    });
+    response.json({ success: true });
+  } catch {
+    response.status(500).json({ error: "Não foi possível excluir a cirurgia." });
+  }
+};
+
 router.use(authenticate);
 router.get("/", list);
 router.post("/", create);
+router.patch("/:id", update);
+router.delete("/:id", remove);
 router.patch("/:id/status", updateStatus);
 
 export { router as surgeriesRouter };
