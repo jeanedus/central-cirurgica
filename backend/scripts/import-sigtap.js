@@ -86,7 +86,7 @@ async function main() {
     const procedureDataset = parsedDatasets.find((d) => d.name === "tb_procedimento");
     if (!procedureDataset) throw new Error("tb_procedimento.txt não foi encontrado.");
     const codes = procedureDataset.records.map((r) => r.CO_PROCEDIMENTO);
-    if (codes.some((code) => !/^\\d{10}$/.test(code))) throw new Error("Há código de procedimento fora do padrão de 10 dígitos.");
+    if (codes.some((code) => !/^\d{10}$/.test(code))) throw new Error("Há código de procedimento fora do padrão de 10 dígitos.");
     if (new Set(codes).size !== codes.length) throw new Error("Há códigos duplicados em tb_procedimento.txt.");
     console.log(JSON.stringify({
       status: "validated_only",
