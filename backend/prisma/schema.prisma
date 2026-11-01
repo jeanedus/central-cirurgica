@@ -47,6 +47,38 @@ enum ProcedureCodeSystem {
   SIGTAP
 }
 
+enum CodingSystemKey {
+  TUSS
+  SIGTAP
+  CBHPM
+  SOCIETY_MANUAL
+  OTHER
+}
+
+enum CatalogVersionStatus {
+  DRAFT
+  IMPORTED
+  VALIDATED
+  SUPERSEDED
+  FAILED
+}
+
+enum CatalogImportStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  PARTIAL
+  FAILED
+}
+
+enum SourceDocumentType {
+  OFFICIAL_CATALOG
+  SOCIETY_MANUAL
+  GUIDELINE
+  REGULATION
+  OTHER
+}
+
 model User {
   id           String       @id @default(uuid()) @db.Uuid
   email        String       @unique @db.VarChar(254)
@@ -186,4 +218,106 @@ model ProcedureCode {
   @@index([organizationId, system, description])
   @@index([organizationId, procedureId])
   @@map("procedure_codes")
+}
+
+
+model CodingSystem {
+  id          String           @id @default(uuid()) @db.Uuid
+  key         CodingSystemKey  @unique
+  name        String           @db.VarChar(160)
+  authority   String?          @db.VarChar(160)
+  description String?
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  versions    CatalogVersion[]
+
+  @@map("coding_systems")
+}
+
+model SourceDocument {
+  id            String             @id @default(uuid()) @db.Uuid
+  type          SourceDocumentType
+  title         String             @db.VarChar(300)
+  issuer        String?            @db.VarChar(200)
+  edition       String?            @db.VarChar(120)
+  publishedAt   DateTime?          @map("published_at") @db.Date
+  sourceUrl     String?            @map("source_url") @db.VarChar(1000)
+  checksum      String?            @db.VarChar(128)
+  pageCount     Int?               @map("page_count")
+  metadata      Json?
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  catalogVersions CatalogVersion[]
+  importBatches CatalogImportBatch[]
+
+  @@index([type, issuer])
+  @@map("source_documents")
+}
+
+model CatalogVersion {
+  id               String                @id @default(uuid()) @db.Uuid
+  codingSystemId   String                @map("coding_system_id") @db.Uuid
+  sourceDocumentId String?               @map("source_document_id") @db.Uuid
+  versionLabel     String                @map("version_label") @db.VarChar(120)
+  competence       String?               @db.VarChar(12)
+  validFrom        DateTime?             @map("valid_from") @db.Date
+  validTo          DateTime?             @map("valid_to") @db.Date
+  publishedAt      DateTime?             @map("published_at") @db.Date
+  importedAt       DateTime?             @map("imported_at") @db.Timestamptz(6)
+  checksum         String?               @db.VarChar(128)
+  status           CatalogVersionStatus  @default(DRAFT)
+  recordsCount     Int?                  @map("records_count")
+  metadata         Json?
+  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  codingSystem     CodingSystem          @relation(fields: [codingSystemId], references: [id], onDelete: Restrict)
+  sourceDocument   SourceDocument?       @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  codes            CatalogCode[]
+  importBatches    CatalogImportBatch[]
+
+  @@unique([codingSystemId, versionLabel])
+  @@index([codingSystemId, competence])
+  @@index([status, validFrom, validTo])
+  @@map("catalog_versions")
+}
+
+model CatalogCode {
+  id               String         @id @default(uuid()) @db.Uuid
+  catalogVersionId String         @map("catalog_version_id") @db.Uuid
+  code             String         @db.VarChar(40)
+  description      String         @db.VarChar(1000)
+  active           Boolean        @default(true)
+  attributes       Json?
+  rawRecord        Json?          @map("raw_record")
+  sourceLine       Int?           @map("source_line")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  catalogVersion  CatalogVersion @relation(fields: [catalogVersionId], references: [id], onDelete: Restrict)
+
+  @@unique([catalogVersionId, code])
+  @@index([code])
+  @@index([catalogVersionId, description])
+  @@map("catalog_codes")
+}
+
+model CatalogImportBatch {
+  id               String              @id @default(uuid()) @db.Uuid
+  catalogVersionId String?             @map("catalog_version_id") @db.Uuid
+  sourceDocumentId String?             @map("source_document_id") @db.Uuid
+  fileName         String              @map("file_name") @db.VarChar(300)
+  checksum         String              @db.VarChar(128)
+  status           CatalogImportStatus @default(PENDING)
+  totalRecords     Int?                @map("total_records")
+  insertedRecords  Int?                @map("inserted_records")
+  updatedRecords   Int?                @map("updated_records")
+  rejectedRecords  Int?                @map("rejected_records")
+  errors           Json?
+  startedAt        DateTime?           @map("started_at") @db.Timestamptz(6)
+  finishedAt       DateTime?           @map("finished_at") @db.Timestamptz(6)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  catalogVersion   CatalogVersion?     @relation(fields: [catalogVersionId], references: [id], onDelete: SetNull)
+  sourceDocument   SourceDocument?     @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([catalogVersionId, createdAt])
+  @@index([status, createdAt])
+  @@map("catalog_import_batches")
 }
