@@ -6,6 +6,24 @@ const SOURCE = "Manual de Diretrizes de Codificação em Cirurgia da Coluna Vert
 
 const scenarios = [
   {
+    id: "lumbar-disc-herniation",
+    title: "Hérnia de disco lombar sem instabilidade — discectomia",
+    match: ({ subtype, region, diagnosis }) =>
+      ["Discectomia", "Descompressão"].includes(subtype) &&
+      ["Lombar", "Toracolombar"].includes(region) &&
+      /h[eé]rnia|h[eé]rnia discal|disco extruso|disco sequestrado/i.test(diagnosis || ""),
+    reference: "Cenário 2.1, p. 29–30",
+    codes: [
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário para hérnia lombar sem instabilidade que demande artrodese/fixação." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal vertebral estreito por segmento", role: "condicional", condition: "Somente se houver estenose concomitante efetivamente tratada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular e/ou cauda equina", role: "condicional", condition: "Somente se a etapa descompressiva correspondente for efetivamente realizada." },
+      { code: "3.07.15.19-9", description: "Laminectomia ou laminotomia", role: "condicional", condition: "Somente se essa etapa de acesso/descompressão for executada; não presumir." },
+      { code: "4.08.11.02-6", description: "Radioscopia para acompanhamento de procedimento cirúrgico", role: "condicional", condition: "Por hora ou fração, conforme regra e registro aplicáveis." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória em cirurgias espinhais e ortopedia", role: "condicional", condition: "Exige justificativa clínica; código destinado à equipe de neuromonitorização." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "evento", condition: "Evento intraoperatório: nunca pré-selecionar; registrar somente se ocorrer inadvertidamente e for tratado." }
+    ]
+  },
+  {
     id: "degenerative-posterior-fusion",
     title: "Artrodese tóraco-lombar posterior",
     match: ({ subtype, region, approach }) =>
@@ -15,7 +33,7 @@ const scenarios = [
     reference: "Cenário 2.6, p. 39–40",
     codes: [
       { code: "3.07.15.01-6", description: "Artrodese da coluna com instrumentação por segmento", role: "principal", condition: "Conforme segmentos efetivamente artrodesados; confirmar unidade de cobrança." },
-      { code: "3.07.15.02-4", description: "Artrodese de coluna via anterior ou póstero-lateral — tratamento cirúrgico", role: "associado", condition: "O manual orienta associação concomitante com o código anterior quando realizada artrodese 360°; validar cenário e contrato." },
+      { code: "3.07.15.02-4", description: "Artrodese de coluna via anterior ou póstero-lateral — tratamento cirúrgico", role: "condicional", condition: "Selecionar somente quando o plano incluir artrodese 360° com os tempos/vias correspondentes; não usar automaticamente em artrodese posterior isolada. Validar cenário e contrato." },
       { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal vertebral estreito por segmento", role: "condicional", condition: "Somente se houver estenose tratada e etapa microcirúrgica correspondente." },
       { code: "3.07.15.09-1", description: "Descompressão medular e/ou cauda equina", role: "condicional", condition: "Somente se a descompressão correspondente for efetivamente realizada." },
       { code: "3.07.15.19-9", description: "Laminectomia ou laminotomia", role: "condicional", condition: "Somente se essa etapa de acesso/descompressão for executada; não presumir." },
@@ -34,7 +52,7 @@ const scenarios = [
     reference: "Cenário 2.7, p. 41–42",
     codes: [
       { code: "3.07.15.01-6", description: "Artrodese da coluna com instrumentação por segmento", role: "principal", condition: "Conforme segmentos efetivamente instrumentados/artrodesados." },
-      { code: "3.07.15.02-4", description: "Artrodese de coluna via anterior ou póstero-lateral — tratamento cirúrgico", role: "associado", condition: "O manual orienta uso concomitante dos dois códigos em artrodese 360°; separar os tempos/vias e validar contrato." },
+      { code: "3.07.15.02-4", description: "Artrodese de coluna via anterior ou póstero-lateral — tratamento cirúrgico", role: "condicional", condition: "Selecionar somente se forem realizados os tempos/vias que caracterizam artrodese 360°; separar os tempos no pedido e validar contrato." },
       { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal vertebral estreito por segmento", role: "condicional", condition: "Somente se estenose for tratada por etapa microcirúrgica." },
       { code: "3.07.15.09-1", description: "Descompressão medular e/ou cauda equina", role: "condicional", condition: "Somente se a descompressão correspondente for realizada." },
       { code: "3.07.15.19-9", description: "Laminectomia ou laminotomia", role: "condicional", condition: "Somente se efetivamente executada." },
