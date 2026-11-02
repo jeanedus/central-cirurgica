@@ -155,6 +155,21 @@ const craniovertebral = getSpineCodingSuggestions({
 });
 assert.equal(craniovertebral?.scenarioId, "deformity-craniovertebral-decompression");
 
+const implantRemoval = getSpineCodingSuggestions({
+  subtype: "Revisão de artrodese", region: "Lombar", approach: "Posterior",
+  diagnosis: "Pseudartrose lombar com retirada e troca de material de síntese"
+});
+assert.equal(implantRemoval?.scenarioId, "spinal-implant-removal-pseudarthrosis");
+assert.ok(implantRemoval.codes.some(code => code.code === "3.07.15.24-5"));
+assert.ok(implantRemoval.codes.some(code => code.code === "2.02.02.04-0"));
+assert.ok(implantRemoval.codes.some(code => code.code === "2.02.02.09-1"));
+
+const vertebralBiopsy = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Torácica", approach: "Percutânea",
+  diagnosis: "Biópsia percutânea de lesão óssea vertebral"
+});
+assert.equal(vertebralBiopsy?.scenarioId, "spinal-biopsy");
+
 // Tumor do corpo vertebral com corpectomia deve cair no cenário específico.
 const tumorCorpectomy = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
