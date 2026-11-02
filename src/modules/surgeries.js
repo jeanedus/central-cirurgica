@@ -431,22 +431,36 @@ function renderSavedRequestCodes(root, codes) {
 
 async function loadRequestCodeSuggestions(root) {
   const list = root.querySelector("#suggestedCodeList");
-  list.innerHTML = '<div class="empty-state">Buscando candidatos no SIGTAP...</div>';
+  list.innerHTML = '<div class="empty-state">Buscando candidatos no SIGTAP e nos códigos TUSS da organização...</div>';
   try {
     const subtype = root.querySelector("#requestSubtype").value;
-    const query = new URLSearchParams({ search: requestCodeSearchTerm(subtype), page: "1", pageSize: "20" });
-    const result = await apiRequest(`/catalogs/SIGTAP/codes?${query.toString()}`);
-    if (!result.codes?.length) {
+    const term = requestCodeSearchTerm(subtype);
+    const query = new URLSearchParams({ search: term, page: "1", pageSize: "20" });
+    const [sigtapResult, localResult] = await Promise.all([
+      apiRequest(`/catalogs/SIGTAP/codes?${query.toString()}`).catch(() => ({ codes: [], version: null })),
+      apiRequest("/procedure-codes").catch(() => ({ codes: [] }))
+    ]);
+    const sigtap = (sigtapResult.codes || []).map(item => ({
+      system: "SIGTAP", code: item.code, description: item.description,
+      catalogVersion: sigtapResult.version?.versionLabel || ""
+    }));
+    const normalized = term.toLocaleLowerCase("pt-BR");
+    const tuss = (localResult.codes || [])
+      .filter(item => item.system === "TUSS" && [item.code, item.description].join(" ").toLocaleLowerCase("pt-BR").includes(normalized))
+      .slice(0, 20)
+      .map(item => ({ system: "TUSS", code: item.code, description: item.description, catalogVersion: "Cadastro da organização" }));
+    const candidates = [...tuss, ...sigtap];
+    if (!candidates.length) {
       list.innerHTML = '<div class="empty-state">Nenhum candidato encontrado. Tente pesquisar manualmente na tela de Procedimentos e códigos.</div>';
       return;
     }
-    list.innerHTML = result.codes.map((item, index) => {
-      const value = JSON.stringify({ system: "SIGTAP", code: item.code, description: item.description, catalogVersion: result.version?.versionLabel || "" }).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
-      return `<label style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" data-request-code value="${value}" /><span><strong>${escapeHTML(item.code)}</strong> — ${escapeHTML(item.description)}</span></label>`;
+    list.innerHTML = candidates.map(item => {
+      const value = JSON.stringify(item).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+      return `<label style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" data-request-code value="${value}" /><span><strong>${escapeHTML(item.system)} · ${escapeHTML(item.code)}</strong> — ${escapeHTML(item.description)}<small style="display:block;color:var(--muted)">${escapeHTML(item.catalogVersion)}</small></span></label>`;
     }).join("");
-    list.insertAdjacentHTML("beforeend", '<p class="muted">Os resultados são candidatos por semelhança textual, não uma regra de codificação. Confirme código, quantidade e compatibilidade antes de usar.</p>');
+    list.insertAdjacentHTML("beforeend", '<p class="muted">Candidatos por semelhança textual, não uma regra de codificação. Confirme tabela, código, quantidade, indicação e compatibilidade antes de usar. A presença de TUSS não significa cobertura contratual.</p>');
   } catch (error) {
-    list.innerHTML = `<div class="empty-state">${escapeHTML(error.message)}. Verifique se a competência SIGTAP está disponível.</div>`;
+    list.innerHTML = `<div class="empty-state">${escapeHTML(error.message)}. Verifique se o catálogo SIGTAP está disponível.</div>`;
   }
 }
 
