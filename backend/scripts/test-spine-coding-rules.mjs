@@ -131,11 +131,11 @@ const earlyScoliosis = getSpineCodingSuggestions({
 });
 assert.equal(earlyScoliosis?.scenarioId, "deformity-early-onset-growth");
 
-const adolescentScoliosis = getSpineCodingSuggestions({
+const adolescentScoliosisExpanded = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
   diagnosis: "Escoliose idiopática do adolescente"
 });
-assert.equal(adolescentScoliosis?.scenarioId, "deformity-adolescent-posterior-fusion");
+assert.equal(adolescentScoliosisExpanded?.scenarioId, "deformity-adolescent-posterior-fusion");
 
 const hemivertebra = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Toracolombar", approach: "Posterior",
