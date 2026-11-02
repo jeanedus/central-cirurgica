@@ -29,6 +29,31 @@ for (const diagnosis of ["Tumor vertebral T11", "Escoliose degenerativa", "Osteo
   assert.notEqual(result?.scenarioId, "degenerative-posterior-fusion");
 }
 
+// Tumor do corpo vertebral com corpectomia deve cair no cenário específico.
+const tumorCorpectomy = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Tumor vertebral T11 com corpectomia e substituição do corpo"
+});
+assert.equal(tumorCorpectomy?.scenarioId, "vertebral-tumor-posterior-corpectomy");
+assert.ok(tumorCorpectomy.codes.some(code => code.code === "3.07.15.28-8"));
+assert.ok(tumorCorpectomy.codes.every(code => code.quantity === null && code.requiresReview));
+
+// Tumor ósseo posterior sem corpectomia deve ter família própria.
+const tumorFusion = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Tumor ósseo vertebral T10"
+});
+assert.equal(tumorFusion?.scenarioId, "vertebral-tumor-posterior-fusion");
+
+// Tumor do canal seleciona família de microcirurgia e não soma automaticamente
+// os dois códigos anatômicos alternativos.
+const canalTumor = getSpineCodingSuggestions({
+  subtype: "Descompressão", region: "Cervical", approach: "Posterior",
+  diagnosis: "Tumor intradural extramedular do canal cervical"
+});
+assert.equal(canalTumor?.scenarioId, "spinal-canal-tumor");
+assert.ok(canalTumor.codes.find(code => code.code === "3.07.15.20-2").condition.includes("Alternativa"));
+
 // Cervical arthroplasty and endoscopic disc herniation remain separately mapped.
 const arthroplasty = getSpineCodingSuggestions({
   subtype: "Artroplastia", region: "Cervical", approach: "Anterior",
