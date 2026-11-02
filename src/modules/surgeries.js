@@ -396,6 +396,18 @@ function previewSurgicalRequest(root) {
     quantity: Number(form.querySelector(`[data-material-quantity="${input.dataset.materialKey}"]`)?.value || 1),
     notes: input.dataset.notes || ""
   }));
+  const multiplicityLabels = {
+    countSegments: "Segmentos abordados",
+    countCorpectomies: "Corpos vertebrais ressecados",
+    countFacetJoints: "Articulações facetárias tratadas",
+    countForamina: "Forames tratados",
+    countTopographicUnits: "Unidades topográficas",
+    countFluoroscopyUnits: "Horas/frações de radioscopia",
+    countMuscles: "Músculos infiltrados"
+  };
+  const multiplicityRows = Object.entries(multiplicityLabels)
+    .filter(([key]) => data[key] !== "")
+    .map(([key, label]) => ({ label, value: data[key] }));
   const content = root.querySelector("#requestPreviewContent");
   content.innerHTML = `
     <div class="panel" style="padding:18px">
@@ -405,6 +417,9 @@ function previewSurgicalRequest(root) {
       <p><strong>Via / técnica:</strong> ${escapeHTML(data.approach)} · <strong>Lateralidade:</strong> ${escapeHTML(data.laterality)}</p>
       <p><strong>Diagnóstico:</strong> ${escapeHTML(data.diagnosis || "Não informado")}</p>
       <p><strong>Revisão:</strong> ${escapeHTML(data.revision)} · <strong>Descompressão associada:</strong> ${escapeHTML(data.decompression)}</p>
+      <h3>Contagens informadas para revisão de multiplicidade</h3>
+      ${multiplicityRows.length ? `<ul>${multiplicityRows.map(item => `<li>${escapeHTML(item.label)}: ${escapeHTML(item.value)}</li>`).join("")}</ul>` : "<p>Nenhuma contagem informada.</p>"}
+      <p><small>As contagens são dados de apoio à conferência; não geram quantidades de códigos automaticamente.</small></p>
       <p><strong>Justificativa clínica:</strong><br>${escapeHTML(data.clinicalJustification || "Não informada")}</p>
       <h3>Códigos selecionados — confirmar antes do envio</h3>
       ${codes.length ? `<ul>${codes.map(item => `<li><strong>${escapeHTML(item.role || item.system)} — ${escapeHTML(item.code)}</strong> — ${escapeHTML(item.description)}${item.condition ? `<br><small>${escapeHTML(item.condition)}</small>` : ""}${item.reference ? `<br><small>${escapeHTML(item.reference)} · ${escapeHTML(item.source || "")}</small>` : ""}</li>`).join("")}</ul>` : "<p>Nenhum código selecionado.</p>"}
