@@ -157,6 +157,7 @@ const create: RequestHandler = async (request, response) => {
         ...(parsed.data.suggestedMaterials.length ? {
           materials: {
             create: parsed.data.suggestedMaterials.map(item => ({
+              organizationId,
               category: item.category,
               description: item.description,
               quantity: item.quantity,
