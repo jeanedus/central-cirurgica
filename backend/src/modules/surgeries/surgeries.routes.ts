@@ -40,10 +40,16 @@ const surgerySchema = z.object({
   notes: z.string().trim().max(5000).optional().default(""),
   requestDetails: z.record(z.unknown()).optional(),
   suggestedCodes: z.array(z.object({
-    system: z.enum(["TUSS", "SIGTAP"]),
+    system: z.enum(["TUSS", "SIGTAP", "SOCIETY_MANUAL"]),
     code: z.string().trim().min(1).max(40),
     description: z.string().trim().min(1).max(1000),
-    catalogVersion: z.string().trim().max(120).optional()
+    catalogVersion: z.string().trim().max(120).optional(),
+    role: z.enum(["principal", "associado", "condicional", "evento"]).optional(),
+    condition: z.string().trim().max(2000).optional(),
+    source: z.string().trim().max(300).optional(),
+    reference: z.string().trim().max(160).optional(),
+    quantity: z.number().int().positive().nullable().optional(),
+    requiresReview: z.boolean().optional()
   })).max(30).optional().default([]),
   suggestedMaterials: z.array(z.object({
     category: z.string().trim().min(1).max(80),
