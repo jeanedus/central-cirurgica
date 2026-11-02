@@ -1,13 +1,13 @@
 import { renderDashboard } from "./modules/dashboard.js";
 import { renderProcedures } from "./modules/procedures.js";
-import { renderSurgeries } from "./modules/surgeries.js";
+import { renderSurgeries, renderSurgicalRequest } from "./modules/surgeries.js";
 import { apiRequest, clearAccessToken, getAccessToken, setActiveOrganization } from "./core/api.js";
 import { renderAuthScreen } from "./modules/auth-screen.js";
 
 const root = document.querySelector("#appContent");
 const shell = document.querySelector("#appShell");
 const authRoot = document.querySelector("#authScreen");
-const titles = { dashboard: "Visão geral", procedures: "Procedimentos", surgeries: "Pedidos cirúrgicos" };
+const titles = { dashboard: "Visão geral", procedures: "Procedimentos", surgeries: "Cirurgias cadastradas", "request-builder": "Gerar pedido cirúrgico" };
 let currentView = "dashboard";
 let currentUser = null;
 
@@ -24,6 +24,7 @@ function navigate(view) {
   document.querySelectorAll("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === view));
   document.querySelector("#breadcrumbCurrent").textContent = titles[view] || "Visão geral";
   if (view === "procedures") renderProcedures(root);
+  else if (view === "request-builder") renderSurgicalRequest(root);
   else if (view === "surgeries") renderSurgeries(root);
   else renderDashboard(root);
   document.querySelector("#sidebar").classList.remove("sidebar-open");
@@ -66,10 +67,8 @@ document.querySelector("#logoutButton").addEventListener("click", () => {
 
 root.addEventListener("click", event => {
   const action = event.target.closest("[data-action]")?.dataset.action;
-  if (action === "go-surgeries" || action === "new-surgery") {
-    navigate("surgeries");
-    if (action === "new-surgery") setTimeout(() => root.querySelector("#addSurgery")?.click(), 0);
-  }
+  if (action === "go-surgeries") navigate("surgeries");
+  if (action === "new-surgery") navigate("request-builder");
   if (action === "new-procedure") {
     navigate("procedures");
     setTimeout(() => root.querySelector("#addProcedure")?.click(), 0);
