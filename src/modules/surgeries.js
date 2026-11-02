@@ -8,7 +8,7 @@ let procedures = [];
 
 export async function renderSurgeries(root) {
   root.innerHTML = `
-    <div class="page-heading"><div><div class="eyebrow">ACOMPANHAMENTO ASSISTENCIAL</div><h1>Cirurgias</h1><p class="muted">Registre solicitações e acompanhe autorização, realização e valores.</p></div><button class="button button-primary" id="addSurgery">＋ Registrar cirurgia</button></div>
+    <div class="page-heading"><div><div class="eyebrow">GERAÇÃO DE PEDIDOS CIRÚRGICOS</div><h1>Pedidos cirúrgicos</h1><p class="muted">Informe os dados da cirurgia e gere a solicitação com códigos e materiais/OPME sugeridos para revisão.</p></div><button class="button button-primary" id="addSurgery">＋ Novo pedido cirúrgico</button></div>
     <div class="notice"><strong>Ambiente de desenvolvimento.</strong> Utilize somente registros fictícios; não cadastre nomes, documentos ou dados clínicos identificáveis de pacientes.</div>
     <section class="panel"><div class="panel-heading"><div><h2>Registros de cirurgias</h2><p class="muted" id="surgeryCount">Carregando...</p></div><input class="search-input" id="surgerySearch" placeholder="Buscar procedimento ou hospital..." /></div><div id="surgeryList"><div class="empty-state">Carregando cirurgias...</div></div></section>
     <dialog class="modal modal-wide" id="surgeryDialog"><form id="surgeryForm"><div class="modal-heading"><div><div class="eyebrow" id="surgeryEyebrow">NOVO REGISTRO</div><h2 id="surgeryDialogTitle">Registrar cirurgia</h2></div><button type="button" class="icon-button" id="closeSurgery" aria-label="Fechar">×</button></div>
@@ -53,11 +53,11 @@ export async function renderSurgeries(root) {
       </div>
       <label>Justificativa clínica / observações para o pedido<textarea name="clinicalJustification" rows="3" maxlength="4000" placeholder="Descreva sintomas, correlação clínico-radiológica, tratamentos prévios e motivo da indicação. Não inclua identificadores pessoais neste ambiente de desenvolvimento."></textarea></label>
       <section class="panel" style="margin:12px 0;padding:14px">
-        <div class="panel-heading"><div><strong>Códigos candidatos</strong><p class="muted">Busca textual no SIGTAP importado. Selecione somente os códigos que você confirmar.</p></div><button type="button" class="button button-secondary button-small" id="suggestCodes">Buscar sugestões</button></div>
+        <div class="panel-heading"><div><strong>Códigos sugeridos pelo cenário cirúrgico</strong><p class="muted">As sugestões são geradas a partir do diagnóstico, região, subtipo e via de acesso. Revise e selecione os códigos aplicáveis.</p></div><button type="button" class="button button-secondary button-small" id="suggestCodes">Atualizar códigos</button></div>
         <div id="suggestedCodeList" class="muted">Escolha o subtipo e clique em “Buscar sugestões”.</div>
       </section>
       <section class="panel" style="margin:12px 0;padding:14px">
-        <div class="panel-heading"><div><strong>Materiais / OPME sugeridos</strong><p class="muted">Sugestões iniciais editáveis; confirme indicação e quantidade para cada caso.</p></div><button type="button" class="button button-secondary button-small" id="generateMaterials">Gerar sugestões</button></div>
+        <div class="panel-heading"><div><strong>Materiais e OPME sugeridos</strong><p class="muted">Lista inicial baseada no tipo de cirurgia e na via de acesso. Ajuste os itens e quantidades ao planejamento.</p></div><button type="button" class="button button-secondary button-small" id="generateMaterials">Atualizar materiais</button></div>
         <div id="suggestedMaterialsList" class="muted">Clique em “Gerar sugestões” para montar a lista inicial.</div>
       </section>
       <div class="section-divider">CONTROLE FINANCEIRO</div>
@@ -105,8 +105,10 @@ export async function renderSurgeries(root) {
   root.querySelector("#cancelMaterial").addEventListener("click", () => materialFormDialog.close());
   root.querySelector("#suggestCodes").addEventListener("click", () => loadRequestCodeSuggestions(root));
   root.querySelector("#generateMaterials").addEventListener("click", () => renderRequestMaterialSuggestions(root));
-  root.querySelector("#requestSubtype").addEventListener("change", () => renderRequestMaterialSuggestions(root));
-  root.querySelector("#requestApproach").addEventListener("change", () => renderRequestMaterialSuggestions(root));
+  root.querySelector("#requestSubtype").addEventListener("change", () => { renderRequestMaterialSuggestions(root); loadRequestCodeSuggestions(root); });
+  root.querySelector("#requestApproach").addEventListener("change", () => { renderRequestMaterialSuggestions(root); loadRequestCodeSuggestions(root); });
+  root.querySelector('[name="region"]').addEventListener("change", () => loadRequestCodeSuggestions(root));
+  root.querySelector('[name="diagnosis"]').addEventListener("change", () => loadRequestCodeSuggestions(root));
 
   root.querySelector("#materialForm").addEventListener("submit", async event => {
     event.preventDefault();
@@ -204,6 +206,8 @@ function openCreateDialog(root) {
   root.querySelector("#surgeryDialogTitle").textContent = "Registrar cirurgia";
   form.querySelector('[type="submit"]').textContent = "Salvar registro";
   dialog.showModal();
+  loadRequestCodeSuggestions(root);
+  renderRequestMaterialSuggestions(root);
 }
 
 function openEditDialog(root, surgeryId) {
@@ -240,6 +244,9 @@ function openEditDialog(root, surgeryId) {
   renderSavedRequestCodes(root, item.suggestedCodes || []);
   form.querySelector('[type="submit"]').textContent = "Salvar alterações";
   dialog.showModal();
+  if (item.suggestedCodes?.length) renderSavedRequestCodes(root, item.suggestedCodes);
+  else loadRequestCodeSuggestions(root);
+  renderRequestMaterialSuggestions(root);
 }
 
 async function loadFormProcedures(root) {
@@ -277,14 +284,14 @@ function renderList(root, searchTerm = "") {
   const filtered = surgeries.filter(item =>
     [item.procedure, item.hospital, item.patientRef, item.payer].join(" ").toLocaleLowerCase("pt-BR").includes(term)
   );
-  root.querySelector("#surgeryCount").textContent = `${surgeries.length} registro(s)`;
+  root.querySelector("#surgeryCount").textContent = `${surgeries.length} pedido(s) cirúrgico(s)`;
   root.querySelector("#surgeryList").innerHTML = listMarkup(filtered);
   bindActions(root);
   bindStatusChange(root);
 }
 
 function listMarkup(items) {
-  if (!items.length) return `<div class="empty-state"><div class="empty-icon">✚</div><strong>Nenhuma cirurgia registrada</strong><p>Use o botão “Registrar cirurgia” para criar o primeiro registro de demonstração.</p></div>`;
+  if (!items.length) return `<div class="empty-state"><div class="empty-icon">✚</div><strong>Nenhuma cirurgia registrada</strong><p>Use o botão “Novo pedido cirúrgico” para informar a cirurgia e gerar a ficha com códigos e materiais sugeridos.</p></div>`;
   return `<div class="table-wrap"><table><thead><tr><th>Procedimento</th><th>Hospital / origem</th><th>Data</th><th>Status</th><th>Recebido</th><th>Ações</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHTML(item.procedure)}</strong><small>${escapeHTML(item.patientRef || "Sem identificador")} · ${escapeHTML(item.specialty)}${item.requestDetails?.subtype ? " · " + escapeHTML(item.requestDetails.subtype) : ""}${item.requestDetails?.levels?.length ? " · " + escapeHTML(item.requestDetails.levels.join(", ")) : ""}</small></td><td>${escapeHTML(item.hospital || "—")}<small>${escapeHTML(item.payer)}</small></td><td>${formatDate(item.date || item.requestDate)}</td><td><select class="inline-status" data-status-id="${escapeHTML(item.id)}" aria-label="Alterar status">${STATUSES.map(status => `<option ${status === item.status ? "selected" : ""}>${status}</option>`).join("")}</select></td><td>${formatCurrency(item.received)}</td><td><button class="text-button" data-materials-id="${escapeHTML(item.id)}">OPME</button> <button class="text-button" data-edit-id="${escapeHTML(item.id)}">Editar</button> <button class="text-button danger" data-delete-id="${escapeHTML(item.id)}">Excluir</button></td></tr>`).join("")}</tbody></table></div>`;
 }
 
@@ -484,7 +491,7 @@ async function loadRequestCodeSuggestions(root) {
       ${ruleSet.codes.map(item => {
         const value = JSON.stringify(item).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
         const role = item.role === "principal" ? "PRINCIPAL" : item.role === "associado" ? "ASSOCIADO" : item.role === "previsto_na_tecnica" ? "PREVISTO NA TÉCNICA — CONFIRMAR" : item.role === "evento" ? "EVENTO — NÃO PRÉ-SELECIONAR" : "CONDICIONAL";
-        const checked = item.role === "principal";
+        const checked = ["principal", "associado"].includes(item.role);
         const disabled = item.role === "evento" ? "disabled" : "";
         return `<label style="display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
           <input type="checkbox" data-request-code value="${value}" ${checked ? "checked" : ""} ${disabled} />
