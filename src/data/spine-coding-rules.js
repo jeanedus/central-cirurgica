@@ -4,6 +4,11 @@
 
 const SOURCE = "Manual de Diretrizes de Codificação em Cirurgia da Coluna Vertebral — SBC/SBOT/SBN, 3ª edição (04/09/2025)";
 
+// Impede que cenários degenerativos sejam aplicados a diagnósticos com regras próprias
+// ou que exigem cenário específico ainda não parametrizado.
+const isNonDegenerativeDiagnosis = diagnosis =>
+  /fratura|fratura-luxação|trauma|tumor|neoplas|metástase|metastase|osteomielite|espondilodiscite|discite|abscesso|infe[cç][aã]o|escoliose|cifose|deformidade|hemiv[eé]rtebra|malforma[cç][aã]o/i.test(diagnosis || "");
+
 const scenarios = [
   {
     id: "traumatic-fracture-posterior",
@@ -30,9 +35,10 @@ const scenarios = [
   {
     id: "cervical-anterior-fusion",
     title: "Artrodese cervical anterior",
-    match: ({ subtype, region, approach }) =>
+    match: ({ subtype, region, approach, diagnosis }) =>
       ["Artrodese", "Revisão de artrodese"].includes(subtype) &&
-      region === "Cervical" && approach === "Anterior",
+      region === "Cervical" && approach === "Anterior" &&
+      !isNonDegenerativeDiagnosis(diagnosis),
     reference: "Cenário 2.11, p. 49–50",
     codes: [
       { code: "3.07.15.02-4", description: "Artrodese de coluna via anterior ou póstero-lateral — tratamento cirúrgico", role: "principal", condition: "Código principal da artrodese cervical anterior." },
@@ -123,11 +129,11 @@ const scenarios = [
   {
     id: "degenerative-posterior-fusion",
     title: "Artrodese tóraco-lombar posterior",
-    match: ({ subtype, region, approach }) =>
+    match: ({ subtype, region, approach, diagnosis }) =>
       ["Artrodese", "Revisão de artrodese"].includes(subtype) &&
       ["Lombar", "Toracolombar", "Torácica", "Multissegmentar"].includes(region) &&
       ["Posterior", "Percutânea"].includes(approach) &&
-      !/fratura|fratura-luxação|trauma/i.test(diagnosis || ""),
+      !isNonDegenerativeDiagnosis(diagnosis),
     reference: "Cenário 2.6, p. 39–40",
     codes: [
       { code: "3.07.15.01-6", description: "Artrodese da coluna com instrumentação por segmento", role: "principal", condition: "Conforme segmentos efetivamente artrodesados; confirmar unidade de cobrança." },
@@ -143,10 +149,11 @@ const scenarios = [
   {
     id: "anterior-lateral-fusion",
     title: "Artrodese lombar anterior ou lateral (ALIF/LLIF/XLIF)",
-    match: ({ subtype, region, approach }) =>
+    match: ({ subtype, region, approach, diagnosis }) =>
       ["Artrodese", "Revisão de artrodese"].includes(subtype) &&
       ["Lombar", "Multissegmentar"].includes(region) &&
-      ["Anterior", "Lateral", "Anterior e posterior"].includes(approach),
+      ["Anterior", "Lateral", "Anterior e posterior"].includes(approach) &&
+      !isNonDegenerativeDiagnosis(diagnosis),
     reference: "Cenário 2.7, p. 41–42",
     codes: [
       { code: "3.07.15.01-6", description: "Artrodese da coluna com instrumentação por segmento", role: "principal", condition: "Conforme segmentos efetivamente instrumentados/artrodesados." },
@@ -166,7 +173,8 @@ const scenarios = [
     match: ({ subtype, region, diagnosis }) =>
       ["Descompressão", "Discectomia"].includes(subtype) &&
       ["Lombar", "Toracolombar", "Torácica", "Cervical", "Multissegmentar"].includes(region) &&
-      /estenose|canal estreito/i.test(diagnosis || ""),
+      /estenose|canal estreito/i.test(diagnosis || "") &&
+      !isNonDegenerativeDiagnosis(diagnosis),
     reference: "Cenário 2.4, p. 35–36",
     codes: [
       { code: "3.07.15.09-1", description: "Descompressão medular e/ou cauda equina", role: "principal", condition: "Código principal do cenário; confirmar objetivo e etapa executada." },
