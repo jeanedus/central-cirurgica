@@ -29,6 +29,21 @@ for (const diagnosis of ["Tumor vertebral T11", "Escoliose degenerativa", "Osteo
   assert.notEqual(result?.scenarioId, "degenerative-posterior-fusion");
 }
 
+// Fraturas com corpectomia devem preceder o cenário traumático sem corpectomia.
+const traumaCorpectomy = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Toracolombar", approach: "Posterior",
+  diagnosis: "Fratura L2 tipo B2 com corpectomia e substituição do corpo"
+});
+assert.equal(traumaCorpectomy?.scenarioId, "traumatic-fracture-posterior-corpectomy");
+assert.ok(traumaCorpectomy.codes.some(code => code.code === "3.07.15.28-8"));
+assert.equal(traumaCorpectomy.codes.find(code => code.code === "3.07.15.16-4").condition.includes("uma única vez"), true);
+
+const trauma360 = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Toracolombar", approach: "Anterior e posterior",
+  diagnosis: "Fratura T12 com corpectomia e substituição do corpo"
+});
+assert.equal(trauma360?.scenarioId, "traumatic-fracture-360-corpectomy");
+
 // Tumor do corpo vertebral com corpectomia deve cair no cenário específico.
 const tumorCorpectomy = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
