@@ -382,7 +382,7 @@ function previewSurgicalRequest(root) {
       <p><strong>Revisão:</strong> ${escapeHTML(data.revision)} · <strong>Descompressão associada:</strong> ${escapeHTML(data.decompression)}</p>
       <p><strong>Justificativa clínica:</strong><br>${escapeHTML(data.clinicalJustification || "Não informada")}</p>
       <h3>Códigos selecionados — confirmar antes do envio</h3>
-      ${codes.length ? `<ul>${codes.map(item => `<li>${escapeHTML(item.system)} — ${escapeHTML(item.code)} — ${escapeHTML(item.description)}</li>`).join("")}</ul>` : "<p>Nenhum código selecionado.</p>"}
+      ${codes.length ? `<ul>${codes.map(item => `<li><strong>${escapeHTML(item.role || item.system)} — ${escapeHTML(item.code)}</strong> — ${escapeHTML(item.description)}${item.condition ? `<br><small>${escapeHTML(item.condition)}</small>` : ""}${item.reference ? `<br><small>${escapeHTML(item.reference)} · ${escapeHTML(item.source || "")}</small>` : ""}</li>`).join("")}</ul>` : "<p>Nenhum código selecionado.</p>"}
       <h3>Materiais / OPME sugeridos — revisar indicação e quantidades</h3>
       ${materials.length ? `<ul>${materials.map(item => `<li>${escapeHTML(item.category)} — ${escapeHTML(item.description)} — quantidade: ${item.quantity}<br><small>${escapeHTML(item.notes)}</small></li>`).join("")}</ul>` : "<p>Nenhum material selecionado.</p>"}
       <hr><p><strong>Hospital:</strong> ${escapeHTML(data.hospital || "Não informado")} · <strong>Origem:</strong> ${escapeHTML(data.payer || "Não informada")}</p>
