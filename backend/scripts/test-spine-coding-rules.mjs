@@ -193,4 +193,52 @@ const endoscopic = getSpineCodingSuggestions({
 });
 assert.equal(endoscopic?.scenarioId, "endoscopic-disc-herniation");
 
+const earlyOnset = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Escoliose de início precoce com sistema de crescimento"
+});
+assert.equal(earlyOnset?.scenarioId, "deformity-early-onset-growth");
+
+const growthLengthening = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Torácica", approach: "Posterior",
+  diagnosis: "Alongamento de haste de crescimento"
+});
+assert.equal(growthLengthening?.scenarioId, "deformity-growth-rod-lengthening");
+
+const adolescentScoliosis = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Escoliose idiopática do adolescente"
+});
+assert.equal(adolescentScoliosis?.scenarioId, "deformity-adolescent-posterior-fusion");
+
+const kyphosis = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Cifose patológica com deformidade"
+});
+assert.equal(kyphosis?.scenarioId, "deformity-pathologic-kyphosis");
+
+const hemivertebra = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Escoliose congênita com hemivértebra"
+});
+assert.equal(hemivertebra?.scenarioId, "deformity-congenital-hemivertebra");
+
+const cervicalDeformity = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Cervical", approach: "Anterior e posterior",
+  diagnosis: "Deformidade cervical do adulto"
+});
+assert.equal(cervicalDeformity?.scenarioId, "deformity-cervical-adult");
+
+const craniovertebralDecompression = getSpineCodingSuggestions({
+  subtype: "Descompressão", region: "Cervical", approach: "Posterior",
+  diagnosis: "Malformação craniovertebral tipo Chiari"
+});
+assert.equal(craniovertebralDecompression?.scenarioId, "deformity-craniovertebral-decompression");
+
+const craniovertebralFusion = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Cervical", approach: "Posterior",
+  diagnosis: "Malformação craniovertebral Chiari com fixação occipitocervical"
+});
+assert.equal(craniovertebralFusion?.scenarioId, "deformity-craniovertebral-fusion");
+
 console.log("Spine coding rules: semantic regression tests passed.");
