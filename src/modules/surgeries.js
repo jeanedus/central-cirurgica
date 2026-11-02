@@ -8,7 +8,7 @@ let procedures = [];
 
 export async function renderSurgeries(root) {
   root.innerHTML = `
-    <div class="page-heading"><div><div class="eyebrow">GERAÇÃO DE PEDIDOS CIRÚRGICOS</div><h1>Pedidos cirúrgicos</h1><p class="muted">Informe os dados da cirurgia e gere a solicitação com códigos e materiais/OPME sugeridos para revisão.</p></div><button class="button button-primary" id="addSurgery">＋ Novo pedido cirúrgico</button></div>
+    <div class="page-heading"><div><div class="eyebrow">GESTÃO DE CIRURGIAS</div><h1>Cirurgias cadastradas</h1><p class="muted">Informe os dados da cirurgia e gere a solicitação com códigos e materiais/OPME sugeridos para revisão.</p></div><button class="button button-primary" id="addSurgery">＋ Nova cirurgia</button></div>
     <div class="notice"><strong>Ambiente de desenvolvimento.</strong> Utilize somente registros fictícios; não cadastre nomes, documentos ou dados clínicos identificáveis de pacientes.</div>
     <section class="panel"><div class="panel-heading"><div><h2>Registros de cirurgias</h2><p class="muted" id="surgeryCount">Carregando...</p></div><input class="search-input" id="surgerySearch" placeholder="Buscar procedimento ou hospital..." /></div><div id="surgeryList"><div class="empty-state">Carregando cirurgias...</div></div></section>
     <dialog class="modal modal-wide" id="surgeryDialog"><form id="surgeryForm"><div class="modal-heading"><div><div class="eyebrow" id="surgeryEyebrow">NOVO REGISTRO</div><h2 id="surgeryDialogTitle">Registrar cirurgia</h2></div><button type="button" class="icon-button" id="closeSurgery" aria-label="Fechar">×</button></div>
@@ -197,6 +197,22 @@ export async function renderSurgeries(root) {
   await loadSurgeries(root);
 }
 
+
+export async function renderSurgicalRequest(root) {
+  await renderSurgeries(root);
+  const heading = root.querySelector(".page-heading");
+  const listPanel = root.querySelector("#surgeryList")?.closest(".panel");
+  if (heading) {
+    heading.querySelector(".eyebrow").textContent = "MÓDULO DE GERAÇÃO DE PEDIDO";
+    heading.querySelector("h1").textContent = "Gerar pedido cirúrgico";
+    heading.querySelector("p").textContent = "Preencha os dados da operação. O sistema monta a solicitação, sugere códigos do manual de codificação e materiais/OPME para sua revisão.";
+    heading.querySelector("#addSurgery").textContent = "＋ Abrir formulário";
+  }
+  if (listPanel) listPanel.hidden = true;
+  const dialog = root.querySelector("#surgeryDialog");
+  if (dialog && !dialog.open) openCreateDialog(root);
+}
+
 function openCreateDialog(root) {
   const dialog = root.querySelector("#surgeryDialog");
   const form = root.querySelector("#surgeryForm");
@@ -291,7 +307,7 @@ function renderList(root, searchTerm = "") {
 }
 
 function listMarkup(items) {
-  if (!items.length) return `<div class="empty-state"><div class="empty-icon">✚</div><strong>Nenhuma cirurgia registrada</strong><p>Use o botão “Novo pedido cirúrgico” para informar a cirurgia e gerar a ficha com códigos e materiais sugeridos.</p></div>`;
+  if (!items.length) return `<div class="empty-state"><div class="empty-icon">✚</div><strong>Nenhuma cirurgia registrada</strong><p>Use a aba “Gerar pedido cirúrgico” para preencher os dados e gerar a solicitação.</p></div>`;
   return `<div class="table-wrap"><table><thead><tr><th>Procedimento</th><th>Hospital / origem</th><th>Data</th><th>Status</th><th>Recebido</th><th>Ações</th></tr></thead><tbody>${items.map(item => `<tr><td><strong>${escapeHTML(item.procedure)}</strong><small>${escapeHTML(item.patientRef || "Sem identificador")} · ${escapeHTML(item.specialty)}${item.requestDetails?.subtype ? " · " + escapeHTML(item.requestDetails.subtype) : ""}${item.requestDetails?.levels?.length ? " · " + escapeHTML(item.requestDetails.levels.join(", ")) : ""}</small></td><td>${escapeHTML(item.hospital || "—")}<small>${escapeHTML(item.payer)}</small></td><td>${formatDate(item.date || item.requestDate)}</td><td><select class="inline-status" data-status-id="${escapeHTML(item.id)}" aria-label="Alterar status">${STATUSES.map(status => `<option ${status === item.status ? "selected" : ""}>${status}</option>`).join("")}</select></td><td>${formatCurrency(item.received)}</td><td><button class="text-button" data-materials-id="${escapeHTML(item.id)}">OPME</button> <button class="text-button" data-edit-id="${escapeHTML(item.id)}">Editar</button> <button class="text-button danger" data-delete-id="${escapeHTML(item.id)}">Excluir</button></td></tr>`).join("")}</tbody></table></div>`;
 }
 
