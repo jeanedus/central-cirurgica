@@ -29,6 +29,23 @@ export async function renderSurgeries(root) {
         <label>Níveis / segmentos<input name="levels" placeholder="Ex.: L4-L5; L5-S1" maxlength="160" /></label>
         <label>Lateralidade<select name="laterality"><option value="Não se aplica">Não se aplica</option><option value="Direita">Direita</option><option value="Esquerda">Esquerda</option><option value="Bilateral">Bilateral</option></select></label>
       </div>
+      <details class="panel" style="margin:10px 0;padding:12px">
+        <summary><strong>Contagens para revisão de multiplicidade</strong></summary>
+        <p class="muted">Preencha apenas quando conhecido. O sistema registra as contagens, mas não calcula nem presume quantidades de cobrança.</p>
+        <div class="form-row">
+          <label>Segmentos abordados<input type="number" name="countSegments" min="0" max="100" step="1" placeholder="Não informado" /></label>
+          <label>Corpos vertebrais ressecados<input type="number" name="countCorpectomies" min="0" max="20" step="1" placeholder="Não informado" /></label>
+        </div>
+        <div class="form-row">
+          <label>Articulações facetárias tratadas<input type="number" name="countFacetJoints" min="0" max="100" step="1" placeholder="Não informado" /></label>
+          <label>Forames tratados<input type="number" name="countForamina" min="0" max="100" step="1" placeholder="Não informado" /></label>
+        </div>
+        <div class="form-row">
+          <label>Unidades topográficas<input type="number" name="countTopographicUnits" min="0" max="100" step="1" placeholder="Não informado" /></label>
+          <label>Horas/frações de radioscopia<input type="number" name="countFluoroscopyUnits" min="0" max="100" step="1" placeholder="Não informado" /></label>
+        </div>
+        <label>Músculos infiltrados<input type="number" name="countMuscles" min="0" max="100" step="1" placeholder="Não informado" /></label>
+      </details>
       <label>Diagnóstico / indicação<input name="diagnosis" maxlength="300" placeholder="Ex.: hérnia discal, estenose, espondilolistese..." /></label>
       <div class="form-row">
         <label>É revisão cirúrgica?<select name="revision"><option value="Não">Não</option><option value="Sim">Sim</option></select></label>
@@ -135,6 +152,10 @@ export async function renderSurgeries(root) {
         region: data.region,
         approach: data.approach,
         levels: data.levels.split(/[;,]/).map(value => value.trim()).filter(Boolean),
+        multiplicityCounts: Object.fromEntries([
+          "countSegments", "countCorpectomies", "countFacetJoints", "countForamina",
+          "countTopographicUnits", "countFluoroscopyUnits", "countMuscles"
+        ].map(key => [key, data[key] === "" ? null : Number(data[key])])),
         laterality: data.laterality,
         diagnosis: data.diagnosis,
         revision: data.revision === "Sim",
@@ -210,6 +231,10 @@ function openEditDialog(root, surgeryId) {
     if (details[key] && form.elements[key]) form.elements[key].value = details[key];
   }
   if (form.elements.levels) form.elements.levels.value = Array.isArray(details.levels) ? details.levels.join("; ") : "";
+  const counts = details.multiplicityCounts || {};
+  for (const key of ["countSegments", "countCorpectomies", "countFacetJoints", "countForamina", "countTopographicUnits", "countFluoroscopyUnits", "countMuscles"]) {
+    if (form.elements[key]) form.elements[key].value = counts[key] ?? "";
+  }
   if (form.elements.revision) form.elements.revision.value = details.revision ? "Sim" : "Não";
   if (form.elements.decompression) form.elements.decompression.value = details.decompression ? "Sim" : "Não";
   renderSavedRequestCodes(root, item.suggestedCodes || []);
