@@ -45,8 +45,13 @@ export async function renderSurgeries(root) {
       <div class="section-divider">CONTROLE FINANCEIRO</div>
       <div class="form-row"><label>Valor previsto / faturado (R$)<input type="number" name="expectedRevenue" min="0" step="0.01" value="0" required /></label><label>Valor recebido (R$)<input type="number" name="received" min="0" step="0.01" value="0" required /></label></div>
       <label>Observações<textarea name="notes" rows="2" maxlength="5000" placeholder="Informações administrativas sem dados clínicos identificáveis"></textarea></label>
-      <div class="modal-actions"><button type="button" class="button button-secondary" id="cancelSurgery">Cancelar</button><button class="button button-primary" type="submit">Salvar registro</button></div>
+      <div class="modal-actions"><button type="button" class="button button-secondary" id="cancelSurgery">Cancelar</button><button type="button" class="button button-secondary" id="previewRequest">Pré-visualizar ficha</button><button class="button button-primary" type="submit">Salvar pedido</button></div>
     </form></dialog>
+    <dialog class="modal modal-wide" id="requestPreviewDialog">
+      <div class="modal-heading"><div><div class="eyebrow">PRÉ-VISUALIZAÇÃO</div><h2>Ficha do pedido cirúrgico</h2></div><button type="button" class="icon-button" id="closeRequestPreview" aria-label="Fechar">×</button></div>
+      <div id="requestPreviewContent"></div>
+      <div class="modal-actions"><button type="button" class="button button-secondary" id="closeRequestPreviewBottom">Voltar</button><button type="button" class="button button-primary" id="printRequest">Imprimir / salvar PDF</button></div>
+    </dialog>
     <dialog class="modal modal-wide" id="materialsDialog">
       <div class="modal-heading"><div><div class="eyebrow">MATERIAIS DA CIRURGIA</div><h2 id="materialsTitle">OPME e materiais</h2><p class="muted" id="materialsSubtitle"></p></div><button type="button" class="icon-button" id="closeMaterials" aria-label="Fechar">×</button></div>
       <div class="panel-heading"><div><strong id="materialsTotal">Total: R$ 0,00</strong><p class="muted">Valores estimados com base na quantidade e no preço unitário.</p></div><button type="button" class="button button-primary" id="addMaterial">＋ Adicionar material</button></div>
@@ -71,6 +76,11 @@ export async function renderSurgeries(root) {
   root.querySelector("#addSurgery").addEventListener("click", () => openCreateDialog(root));
   root.querySelector("#closeSurgery").addEventListener("click", () => dialog.close());
   root.querySelector("#cancelSurgery").addEventListener("click", () => dialog.close());
+  const requestPreviewDialog = root.querySelector("#requestPreviewDialog");
+  root.querySelector("#previewRequest").addEventListener("click", () => previewSurgicalRequest(root));
+  root.querySelector("#closeRequestPreview").addEventListener("click", () => requestPreviewDialog.close());
+  root.querySelector("#closeRequestPreviewBottom").addEventListener("click", () => requestPreviewDialog.close());
+  root.querySelector("#printRequest").addEventListener("click", () => printSurgicalRequest(root));
   root.querySelector("#closeMaterials").addEventListener("click", () => materialsDialog.close());
   root.querySelector("#addMaterial").addEventListener("click", () => openMaterialForm(root));
   root.querySelector("#closeMaterialForm").addEventListener("click", () => materialFormDialog.close());
@@ -349,6 +359,49 @@ function openMaterialForm(root, materialId = "") {
   }
   form.querySelector('[type="submit"]').textContent = item ? "Salvar alterações" : "Salvar material";
   dialog.showModal();
+}
+
+function previewSurgicalRequest(root) {
+  const form = root.querySelector("#surgeryForm");
+  const data = Object.fromEntries(new FormData(form));
+  const codes = [...form.querySelectorAll("[data-request-code]:checked")].map(input => {
+    try { return JSON.parse(input.value); } catch { return null; }
+  }).filter(Boolean);
+  const materials = [...form.querySelectorAll("[data-request-material]:checked")].map(input => ({
+    category: input.dataset.category,
+    description: input.dataset.description,
+    quantity: Number(form.querySelector(`[data-material-quantity="${input.dataset.materialKey}"]`)?.value || 1),
+    notes: input.dataset.notes || ""
+  }));
+  const content = root.querySelector("#requestPreviewContent");
+  content.innerHTML = `
+    <div class="panel" style="padding:18px">
+      <h2>Solicitação cirúrgica — ${escapeHTML(data.subtype || "Coluna")}</h2>
+      <p><strong>Procedimento cadastrado:</strong> ${escapeHTML(procedures.find(item => item.id === data.procedureId)?.name || "Não selecionado")}</p>
+      <p><strong>Região / níveis:</strong> ${escapeHTML(data.region)} · ${escapeHTML(data.levels || "Não informado")}</p>
+      <p><strong>Via / técnica:</strong> ${escapeHTML(data.approach)} · <strong>Lateralidade:</strong> ${escapeHTML(data.laterality)}</p>
+      <p><strong>Diagnóstico:</strong> ${escapeHTML(data.diagnosis || "Não informado")}</p>
+      <p><strong>Revisão:</strong> ${escapeHTML(data.revision)} · <strong>Descompressão associada:</strong> ${escapeHTML(data.decompression)}</p>
+      <p><strong>Justificativa clínica:</strong><br>${escapeHTML(data.clinicalJustification || "Não informada")}</p>
+      <h3>Códigos selecionados — confirmar antes do envio</h3>
+      ${codes.length ? `<ul>${codes.map(item => `<li>${escapeHTML(item.system)} — ${escapeHTML(item.code)} — ${escapeHTML(item.description)}</li>`).join("")}</ul>` : "<p>Nenhum código selecionado.</p>"}
+      <h3>Materiais / OPME sugeridos — revisar indicação e quantidades</h3>
+      ${materials.length ? `<ul>${materials.map(item => `<li>${escapeHTML(item.category)} — ${escapeHTML(item.description)} — quantidade: ${item.quantity}<br><small>${escapeHTML(item.notes)}</small></li>`).join("")}</ul>` : "<p>Nenhum material selecionado.</p>"}
+      <hr><p><strong>Hospital:</strong> ${escapeHTML(data.hospital || "Não informado")} · <strong>Origem:</strong> ${escapeHTML(data.payer || "Não informada")}</p>
+      <p><small>Documento gerado como rascunho para revisão médica. Códigos, materiais, quantidades, cobertura e compatibilidades não são validados automaticamente.</small></p>
+    </div>`;
+  root.querySelector("#requestPreviewDialog").showModal();
+}
+
+function printSurgicalRequest(root) {
+  const content = root.querySelector("#requestPreviewContent").innerHTML;
+  const printWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+  if (!printWindow) {
+    window.showToast("Permita a abertura de janelas para imprimir a ficha.");
+    return;
+  }
+  printWindow.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Ficha do pedido cirúrgico</title><style>body{font:14px Arial,sans-serif;color:#222;margin:32px;line-height:1.5}h2{font-size:22px}h3{margin-top:24px;border-bottom:1px solid #ccc;padding-bottom:6px}p{margin:8px 0}li{margin:7px 0}small{color:#555}@media print{body{margin:15mm}}</style></head><body>${content}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  printWindow.document.close();
 }
 
 function requestCodeSearchTerm(subtype) {
