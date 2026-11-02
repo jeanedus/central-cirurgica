@@ -96,7 +96,7 @@ const spondylodiscitisNoFusion = getSpineCodingSuggestions({
   subtype: "Descompressão", region: "Lombar", approach: "Posterior",
   diagnosis: "Espondilodiscite lombar com abscesso epidural sem instabilidade"
 });
-assert.equal(spondylodiscitisNoFusion?.scenarioId, "spinal-infection-posterior-no-fusion");
+assert.equal(spondylodiscitisNoFusion?.scenarioId, "posterior-spinal-infection");
 assert.ok(!spondylodiscitisNoFusion.codes.some(code => code.code === "3.07.15.01-6"));
 
 const radiofrequency = getSpineCodingSuggestions({
