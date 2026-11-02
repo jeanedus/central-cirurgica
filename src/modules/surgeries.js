@@ -444,7 +444,7 @@ async function loadRequestCodeSuggestions(root) {
       ${ruleSet.codes.map(item => {
         const value = JSON.stringify(item).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
         const role = item.role === "principal" ? "PRINCIPAL" : item.role === "associado" ? "ASSOCIADO" : item.role === "evento" ? "EVENTO — NÃO PRÉ-SELECIONAR" : "CONDICIONAL";
-        const checked = item.role === "principal" || item.role === "associado";
+        const checked = item.role === "principal";
         const disabled = item.role === "evento" ? "disabled" : "";
         return `<label style="display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
           <input type="checkbox" data-request-code value="${value}" ${checked ? "checked" : ""} ${disabled} />
