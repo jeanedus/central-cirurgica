@@ -395,7 +395,7 @@ function previewSurgicalRequest(root) {
 
 function printSurgicalRequest(root) {
   const content = root.querySelector("#requestPreviewContent").innerHTML;
-  const printWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+  const printWindow = window.open("", "_blank", "width=900,height=700");
   if (!printWindow) {
     window.showToast("Permita a abertura de janelas para imprimir a ficha.");
     return;
