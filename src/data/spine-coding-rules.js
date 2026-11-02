@@ -97,7 +97,7 @@ const scenarios = [
   {
     id: "deformity-adult-360-fusion",
     title: "Deformidade toracolombar/lombar do adulto com artrodese 360°",
-    match: ({ subtype, approach, diagnosis }) => ["Artrodese", "Revisão de artrodese"].includes(subtype) && ["Anterior e posterior", "Lateral e posterior", "Outra / não definida"].includes(approach) && /deformidade.*(adulto|toracolombar|lombar|lombossacra)|escoliose.*adulto/i.test(diagnosis || ""),
+    match: ({ subtype, approach, diagnosis }) => ["Artrodese", "Revisão de artrodese"].includes(subtype) && ["Anterior e posterior", "Lateral e posterior", "Outra / não definida"].includes(approach) && !/cervical|cervicotor[aá]cica|cr[aâ]nio.?cervical/i.test(diagnosis || "") && /deformidade.*(adulto|toracolombar|lombar|lombossacra)|escoliose.*adulto/i.test(diagnosis || ""),
     reference: "Cenário 5.6, p. 119–121",
     codes: [
       { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário." },
