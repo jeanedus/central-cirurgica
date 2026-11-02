@@ -11,7 +11,7 @@ export async function renderSurgeries(root) {
     <div class="notice"><strong>Ambiente de desenvolvimento.</strong> Utilize somente registros fictícios; não cadastre nomes, documentos ou dados clínicos identificáveis de pacientes.</div>
     <section class="panel"><div class="panel-heading"><div><h2>Registros de cirurgias</h2><p class="muted" id="surgeryCount">Carregando...</p></div><input class="search-input" id="surgerySearch" placeholder="Buscar procedimento ou hospital..." /></div><div id="surgeryList"><div class="empty-state">Carregando cirurgias...</div></div></section>
     <dialog class="modal modal-wide" id="surgeryDialog"><form id="surgeryForm"><div class="modal-heading"><div><div class="eyebrow" id="surgeryEyebrow">NOVO REGISTRO</div><h2 id="surgeryDialogTitle">Registrar cirurgia</h2></div><button type="button" class="icon-button" id="closeSurgery" aria-label="Fechar">×</button></div>
-      <div class="form-row"><label>Identificador fictício / código interno<input name="patientRef" maxlength="80" placeholder="Ex.: TESTE-001 (não usar nome real)" /></label><label>Procedimento<select name="procedureId" required><option value="">Carregando procedimentos...</option></select></label></div>
+      <div class="form-row"><label>Identificador fictício / código interno<input name="patientRef" maxlength="80" placeholder="Ex.: TESTE-001 (não usar nome real)" /></label><label>Vincular à biblioteca (opcional)<select name="procedureId"><option value="">Gerar a partir dos dados do pedido</option></select></label></div>
       <div class="form-row"><label>Especialidade<select name="specialty" required><option>Coluna</option><option>Crânio</option><option>Nervos periféricos</option><option>Outros</option></select></label><label>Hospital / unidade<input name="hospital" maxlength="160" placeholder="Hospital" /></label></div>
       <div class="form-row"><label>Origem<select name="payer"><option>Convênio</option><option>SUS</option><option>Particular</option></select></label><label>Status<select name="status">${STATUSES.map(status => `<option>${status}</option>`).join("")}</select></label></div>
       <div class="form-row"><label>Data da solicitação<input type="date" name="requestDate" /></label><label>Data da cirurgia<input type="date" name="date" /></label></div>
@@ -120,14 +120,11 @@ export async function renderSurgeries(root) {
     const submit = form.querySelector('[type="submit"]');
     const data = Object.fromEntries(new FormData(form));
     const selectedProcedure = procedures.find(item => item.id === data.procedureId);
-    if (!selectedProcedure) {
-      window.showToast("Selecione um procedimento cadastrado.");
-      return;
-    }
+    const generatedProcedureName = [data.subtype, data.region, data.levels].filter(Boolean).join(" — ").slice(0, 200);
     const payload = {
       ...data,
-      procedureId: selectedProcedure.id,
-      procedure: selectedProcedure.name,
+      procedureId: selectedProcedure?.id || null,
+      procedure: selectedProcedure?.name || generatedProcedureName || "Cirurgia de coluna",
       expectedRevenue: Number(data.expectedRevenue),
       received: Number(data.received),
       requestDetails: {
@@ -226,8 +223,7 @@ async function loadFormProcedures(root) {
     select.innerHTML = '<option value="">Selecione...</option>' +
       procedures.map(item => `<option value="${escapeHTML(item.id)}">${escapeHTML(item.name)}</option>`).join("");
     if (!procedures.length) {
-      select.innerHTML = '<option value="">Cadastre um procedimento primeiro</option>';
-      root.querySelector("#addSurgery").disabled = true;
+      select.innerHTML = '<option value="">Gerar a partir dos dados do pedido</option>';
     }
   } catch (error) {
     select.innerHTML = '<option value="">Não foi possível carregar</option>';
