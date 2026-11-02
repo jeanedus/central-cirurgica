@@ -44,6 +44,37 @@ const trauma360 = getSpineCodingSuggestions({
 });
 assert.equal(trauma360?.scenarioId, "traumatic-fracture-360-corpectomy");
 
+// Deformidades: roteamento específico por diagnóstico, região e via.
+const earlyScoliosis = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Escoliose de início precoce com sistema de crescimento"
+});
+assert.equal(earlyScoliosis?.scenarioId, "early-onset-scoliosis-growth-system");
+
+const adolescentScoliosis = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Escoliose idiopática do adolescente"
+});
+assert.equal(adolescentScoliosis?.scenarioId, "adolescent-scoliosis-posterior-fusion");
+
+const hemivertebra = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Toracolombar", approach: "Posterior",
+  diagnosis: "Escoliose congênita por hemivértebra"
+});
+assert.equal(hemivertebra?.scenarioId, "congenital-scoliosis-hemivertebra");
+
+const adultDeformity = getSpineCodingSuggestions({
+  subtype: "Artrodese", region: "Lombar", approach: "Anterior e posterior",
+  diagnosis: "Deformidade lombar degenerativa do adulto com desequilíbrio sagital"
+});
+assert.equal(adultDeformity?.scenarioId, "adult-thoracolumbar-deformity-360");
+
+const craniovertebral = getSpineCodingSuggestions({
+  subtype: "Descompressão", region: "Cervical", approach: "Posterior",
+  diagnosis: "Malformação craniovertebral tipo Chiari"
+});
+assert.equal(craniovertebral?.scenarioId, "craniovertebral-malformation-decompression-fusion");
+
 // Tumor do corpo vertebral com corpectomia deve cair no cenário específico.
 const tumorCorpectomy = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
