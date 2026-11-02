@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "backend/**"
+      - "src/modules/surgeries.js"
       - ".github/workflows/backend-validation.yml"
   pull_request:
     paths:
