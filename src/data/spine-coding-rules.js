@@ -11,6 +11,222 @@ const isNonDegenerativeDiagnosis = diagnosis =>
 
 const scenarios = [
   {
+    id: "postoperative-spinal-infection",
+    title: "Infecção pós-operatória da coluna — desbridamento/drenagem",
+    match: ({ subtype, diagnosis }) =>
+      ["Outro", "Descompressão", "Revisão de artrodese"].includes(subtype) &&
+      /infec[cç][aã]o|abscesso|osteomielite|espondilodiscite/i.test(diagnosis || "") &&
+      /p[oó]s.?operat[oó]ria|ferida operat[oó]ria|instrumenta[cç][aã]o pr[eé]via|implante infectado/i.test(diagnosis || ""),
+    reference: "Cenário 6.3, p. 136–137",
+    codes: [
+      { code: "3.07.15.21-0", description: "Osteomielite de coluna — tratamento cirúrgico", role: "principal", condition: "Tratamento cirúrgico da infecção vertebral." },
+      { code: "3.01.01.28-0", description: "Desbridamento cirúrgico — por unidade topográfica", role: "associado", condition: "Conforme unidades topográficas efetivamente tratadas." },
+      { code: "3.01.01.62-0", description: "Incisão e drenagem de abscesso, hematoma ou panarício", role: "condicional", condition: "Se houver coleção/abscesso drenado." },
+      { code: "3.01.01.23-9", description: "Curativo especial sob anestesia — por unidade topográfica", role: "condicional", condition: "Se realizado conforme cenário." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.24-5", description: "Pseudartrose de coluna — tratamento cirúrgico", role: "condicional", condition: "Se instrumentação prévia com pseudartrose." },
+      { code: "3.07.15.27-0", description: "Retirada de material de síntese", role: "condicional", condition: "Se houver necessidade de troca/retirada do material." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "condicional", condition: "Somente se houver nova artrodese." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior/póstero-lateral", role: "condicional", condition: "Somente se houver nova artrodese 360°." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Se necessário em procedimento cervical posterior." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "evento", condition: "Somente se intercorrência ocorrer e for tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "condicional", condition: "Por hora ou fração, conforme registro." }
+    ]
+  },
+  {
+    id: "spinal-infection-with-fusion",
+    title: "Espondilodiscite/abscesso epidural — tratamento com artrodese",
+    match: ({ subtype, region, approach, diagnosis }) =>
+      ["Artrodese", "Revisão de artrodese"].includes(subtype) &&
+      ["Cervical", "Torácica", "Toracolombar", "Lombar", "Multissegmentar"].includes(region) &&
+      ["Anterior", "Posterior", "Lateral", "Anterior e posterior"].includes(approach) &&
+      /espondilodiscite|discite|osteomielite|abscesso epidural/i.test(diagnosis || ""),
+    reference: "Cenário 6.1, p. 130–133",
+    codes: [
+      { code: "3.07.15.21-0", description: "Osteomielite de coluna — tratamento cirúrgico", role: "principal", condition: "Tratamento cirúrgico da infecção vertebral." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "associado", condition: "Conforme segmentos; concomitante ao 3.07.15.02-4 na artrodese 360°." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior/póstero-lateral", role: "condicional", condition: "Concomitante ao 3.07.15.01-6 quando artrodese 360°." },
+      { code: "3.07.15.28-8", description: "Substituição de corpo vertebral", role: "condicional", condition: "Somente se corpectomia." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar", role: "condicional", condition: "Conforme discectomia e localização torácica/lombar." },
+      { code: "3.07.15.39-3", description: "Hérnia de disco cervical", role: "condicional", condition: "Conforme discectomia e localização cervical; alternativa anatômica ao código toracolombar." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal estreito por segmento", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.06.01.02-9", description: "Costectomia", role: "condicional", condition: "Conforme arcos costais efetivamente retirados." },
+      { code: "3.06.01.19-3", description: "Toracotomia para procedimentos ortopédicos sobre a coluna", role: "condicional", condition: "Somente se acesso por toracotomia anterior/lateral." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.03-2", description: "Biópsia da coluna", role: "condicional", condition: "Conforme coleta/etapa realizada e tabela aplicável." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Conforme necessidade de posicionamento/fixação cervical." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "evento", condition: "Somente se ocorrer e for tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Por hora ou fração, conforme registro." }
+    ]
+  },
+  {
+    id: "spinal-infection-posterior-no-fusion",
+    title: "Espondilodiscite/abscesso epidural — via posterior sem artrodese",
+    match: ({ subtype, region, approach, diagnosis }) =>
+      ["Descompressão", "Outro"].includes(subtype) &&
+      ["Torácica", "Toracolombar", "Lombar"].includes(region) &&
+      ["Posterior", "Endoscópica"].includes(approach) &&
+      /espondilodiscite|discite|osteomielite|abscesso epidural/i.test(diagnosis || "") &&
+      !/artrodese|instabilidade/i.test(diagnosis || ""),
+    reference: "Cenário 6.2, p. 134–135",
+    codes: [
+      { code: "3.07.15.21-0", description: "Osteomielite de coluna — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário sem artrodese." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar", role: "condicional", condition: "Se houver anulotomia/discectomia parcial para coleta e limpeza intradiscal." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal estreito por segmento", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.03-2", description: "Biópsia da coluna", role: "condicional", condition: "Se houver coleta/etapa de biópsia; extração do manual aponta divergência na observação geral." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "evento", condition: "Somente se ocorrer e for tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Por hora ou fração, conforme registro." }
+    ]
+  },
+  {
+    id: "spinal-foreign-body-removal",
+    title: "Retirada de corpo estranho na coluna",
+    match: ({ subtype, diagnosis }) =>
+      ["Descompressão", "Outro"].includes(subtype) &&
+      /corpo estranho|fragmento met[aá]lico|proj[eé]til|estilha[cç]o/i.test(diagnosis || ""),
+    reference: "Cenário 6.4, p. 138–139",
+    codes: [
+      { code: "3.07.15.31-8", description: "Tratamento cirúrgico da lesão traumática raquimedular", role: "condicional", condition: "Conforme lesão traumática raquimedular documentada." },
+      { code: "3.07.15.26-1", description: "Retirada de corpo estranho — tratamento cirúrgico", role: "principal", condition: "Retirada efetiva de corpo estranho." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "evento", condition: "Somente se ocorrer e for tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Por hora ou fração, conforme registro." }
+    ]
+  },
+  {
+    id: "spinal-biopsy",
+    title: "Biópsia de lesão vertebral",
+    match: ({ subtype, diagnosis }) =>
+      ["Outro", "Descompressão"].includes(subtype) &&
+      /bi[oó]psia/i.test(diagnosis || "") &&
+      /les[aã]o vertebral|les[aã]o [oó]ssea|coluna/i.test(diagnosis || ""),
+    reference: "Cenário 6.6, p. 143",
+    codes: [
+      { code: "3.07.15.03-2", description: "Biópsia da coluna", role: "principal", condition: "Conforme lesão e técnica de biópsia." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Por hora ou fração, conforme registro." }
+    ]
+  },
+  {
+    id: "open-csf-fistula-repair",
+    title: "Tratamento cirúrgico de fístula liquórica aberta",
+    match: ({ subtype, diagnosis }) =>
+      ["Outro", "Revisão de artrodese"].includes(subtype) &&
+      /f[ií]stula liqu[oó]rica|vazamento de l[ií]quor|liquorr[eé]ia/i.test(diagnosis || "") &&
+      /reopera[cç][aã]o|p[oó]s.?operat[oó]ria|aberta/i.test(diagnosis || ""),
+    reference: "Cenário 6.7, p. 144",
+    codes: [
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "principal", condition: "Fístula persistente/alto débito tratada cirurgicamente." },
+      { code: "3.01.01.62-0", description: "Incisão e drenagem de abscesso, hematoma ou panarício", role: "condicional", condition: "Conforme coleção liquórica/hematoma/infecciosa drenada." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "condicional", condition: "Conforme técnica e registro." }
+    ]
+  },
+  {
+    id: "pain-facet-infiltration",
+    title: "Infiltração/bloqueio facetário ou foraminal",
+    match: ({ subtype, approach, diagnosis }) =>
+      ["Outro", "Descompressão"].includes(subtype) &&
+      ["Percutânea", "Outra / não definida"].includes(approach) &&
+      /bloqueio|infiltra[cç][aã]o|dor facet[aá]ria|dor radicular/i.test(diagnosis || "") &&
+      !/radiofrequ[eê]ncia|rizotomia|crio|oz[oô]nio|discografia|neuroestimul/i.test(diagnosis || ""),
+    reference: "Cenário 8.1, p. 157",
+    codes: [
+      { code: "4.08.13.36-3", description: "Coluna vertebral: infiltração foraminal ou facetária ou articular", role: "principal", condition: "Multiplicar por articulações facetárias e neuroforames efetivamente infiltrados; duas facetas e dois forames por nível segundo manual." },
+      { code: "3.14.03.03-4", description: "Denervação percutânea de faceta articular — por segmento", role: "condicional", condition: "Somente se houver denervação do ramo medial; multiplicar por segmentos denervados." },
+      { code: "3.16.02.16-9", description: "Bloqueio peridural ou subaracnóideo com corticoide", role: "condicional", condition: "Uma vez por procedimento, conforme cenário 8.1." },
+      { code: "3.16.02.12-6", description: "Bloqueio facetário para-espinhoso", role: "condicional", condition: "Conforme técnica efetivamente realizada." },
+      { code: "2.01.03.30-1", description: "Infiltração de ponto gatilho ou agulhamento seco", role: "condicional", condition: "Por músculo efetivamente tratado." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "pain-radiofrequency-rhizotomy",
+    title: "Rizotomia facetária por radiofrequência",
+    match: ({ subtype, approach, diagnosis }) =>
+      ["Outro", "Descompressão"].includes(subtype) &&
+      ["Percutânea", "Outra / não definida"].includes(approach) &&
+      /radiofrequ[eê]ncia|rizotomia facet[aá]ria/i.test(diagnosis || ""),
+    reference: "Cenário 8.4, p. 160",
+    codes: [
+      { code: "3.14.03.33-6", description: "Rizotomia percutânea por segmento — qualquer método", role: "principal", condition: "Multiplicar pelo número de segmentos vertebrais abordados." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "pain-neurostimulation-percutaneous-test",
+    title: "Neuroestimulação medular/periférica — fase teste percutânea",
+    match: ({ subtype, approach, diagnosis }) =>
+      ["Outro", "Descompressão"].includes(subtype) &&
+      ["Percutânea", "Outra / não definida"].includes(approach) &&
+      /neuroestimul|estimula[cç][aã]o el[eé]trica medular/i.test(diagnosis || "") &&
+      /teste|trial/i.test(diagnosis || ""),
+    reference: "Cenário 8.5, p. 161",
+    codes: [
+      { code: "3.14.01.10-4", description: "Implante de eletrodos medular ou cerebral", role: "principal", condition: "Implante de eletrodo na fase teste." },
+      { code: "3.16.02.22-3", description: "Passagem de cateter peridural ou subaracnóideo com bloqueio de prova", role: "associado", condition: "Conforme técnica descrita no cenário." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "pain-neurostimulation-percutaneous-implant",
+    title: "Neuroestimulação medular/periférica — implante definitivo percutâneo",
+    match: ({ subtype, approach, diagnosis }) =>
+      ["Outro", "Descompressão"].includes(subtype) &&
+      ["Percutânea", "Outra / não definida"].includes(approach) &&
+      /neuroestimul|estimula[cç][aã]o el[eé]trica medular/i.test(diagnosis || "") &&
+      /implante definitivo|gerador definitivo|implante do gerador/i.test(diagnosis || ""),
+    reference: "Cenário 8.6, p. 162",
+    codes: [
+      { code: "3.14.01.10-4", description: "Implante de eletrodos medular ou cerebral", role: "principal", condition: "Não repetir se o eletrodo definitivo for o mesmo já implantado na fase teste." },
+      { code: "3.14.03.14-0", description: "Implante de gerador para neuroestimulação", role: "associado", condition: "Implante do gerador definitivo." },
+      { code: "4.01.03.43-9", description: "Impedanciometria", role: "condicional", condition: "Conforme teste do sistema." },
+      { code: "3.16.02.22-3", description: "Passagem de cateter peridural ou subaracnóideo com bloqueio de prova", role: "condicional", condition: "Conforme técnica do cenário." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "percutaneous-discectomy-pain",
+    title: "Discectomia percutânea para controle da dor",
+    match: ({ subtype, approach, diagnosis }) =>
+      ["Outro", "Discectomia"].includes(subtype) &&
+      ["Percutânea", "Outra / não definida"].includes(approach) &&
+      /discectomia percut[aâ]nea/i.test(diagnosis || ""),
+    reference: "Cenário 8.11, p. 167",
+    codes: [
+      { code: "4.08.14.09-2", description: "Osteoplastia ou discectomia percutânea", role: "principal", condition: "Multiplicar pelo número de segmentos/discos operados." },
+      { code: "3.16.02.16-9", description: "Bloqueio peridural ou subaracnóideo com corticoide", role: "condicional", condition: "Uma vez por procedimento." },
+      { code: "3.16.02.12-6", description: "Bloqueio facetário para-espinhoso", role: "condicional", condition: "Multiplicar por segmentos/níveis bloqueados." },
+      { code: "2.01.03.30-1", description: "Infiltração de ponto gatilho ou agulhamento seco", role: "condicional", condition: "Por músculo efetivamente tratado." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "lumbar-discography",
+    title: "Discografia lombar",
+    match: ({ subtype, approach, diagnosis }) =>
+      ["Outro", "Discectomia"].includes(subtype) &&
+      ["Percutânea", "Outra / não definida"].includes(approach) &&
+      /discografia/i.test(diagnosis || ""),
+    reference: "Cenário 8.12, p. 168",
+    codes: [
+      { code: "4.08.14.10-6", description: "Discografia", role: "principal", condition: "Multiplicar pelo número de segmentos/discos examinados." },
+      { code: "3.16.02.16-9", description: "Bloqueio peridural ou subaracnóideo com corticoide", role: "condicional", condition: "Uma vez por procedimento." },
+      { code: "3.16.02.12-6", description: "Bloqueio facetário para-espinhoso", role: "condicional", condition: "Multiplicar por segmentos/níveis bloqueados." },
+      { code: "2.01.03.30-1", description: "Infiltração de ponto gatilho ou agulhamento seco", role: "condicional", condition: "Por músculo efetivamente tratado." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
     id: "early-onset-scoliosis-growth-system",
     title: "Escoliose de início precoce — sistema de crescimento",
     match: ({ subtype, diagnosis }) =>
