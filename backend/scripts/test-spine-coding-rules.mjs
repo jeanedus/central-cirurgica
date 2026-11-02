@@ -129,19 +129,19 @@ const earlyScoliosis = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
   diagnosis: "Escoliose de início precoce com sistema de crescimento"
 });
-assert.equal(earlyScoliosis?.scenarioId, "early-onset-scoliosis-growth-system");
+assert.equal(earlyScoliosis?.scenarioId, "deformity-early-onset-growth");
 
 const adolescentScoliosis = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
   diagnosis: "Escoliose idiopática do adolescente"
 });
-assert.equal(adolescentScoliosis?.scenarioId, "adolescent-scoliosis-posterior-fusion");
+assert.equal(adolescentScoliosis?.scenarioId, "deformity-adolescent-posterior-fusion");
 
 const hemivertebra = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Toracolombar", approach: "Posterior",
   diagnosis: "Escoliose congênita por hemivértebra"
 });
-assert.equal(hemivertebra?.scenarioId, "congenital-scoliosis-hemivertebra");
+assert.equal(hemivertebra?.scenarioId, "deformity-congenital-hemivertebra");
 
 const adultDeformity = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Lombar", approach: "Anterior e posterior",
