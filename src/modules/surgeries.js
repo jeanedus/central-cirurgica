@@ -373,7 +373,7 @@ function previewSurgicalRequest(root) {
   content.innerHTML = `
     <div class="panel" style="padding:18px">
       <h2>Solicitação cirúrgica — ${escapeHTML(data.subtype || "Coluna")}</h2>
-      <p><strong>Procedimento cadastrado:</strong> ${escapeHTML(procedures.find(item => item.id === data.procedureId)?.name || "Não selecionado")}</p>
+      <p><strong>Procedimento cadastrado:</strong> ${escapeHTML(procedures.find(item => item.id === data.procedureId)?.name || [data.subtype, data.region, data.levels].filter(Boolean).join(" — ") || "Não informado")}</p>
       <p><strong>Região / níveis:</strong> ${escapeHTML(data.region)} · ${escapeHTML(data.levels || "Não informado")}</p>
       <p><strong>Via / técnica:</strong> ${escapeHTML(data.approach)} · <strong>Lateralidade:</strong> ${escapeHTML(data.laterality)}</p>
       <p><strong>Diagnóstico:</strong> ${escapeHTML(data.diagnosis || "Não informado")}</p>
