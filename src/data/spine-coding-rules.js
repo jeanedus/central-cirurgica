@@ -126,7 +126,8 @@ const scenarios = [
     match: ({ subtype, region, approach }) =>
       ["Artrodese", "Revisão de artrodese"].includes(subtype) &&
       ["Lombar", "Toracolombar", "Torácica", "Multissegmentar"].includes(region) &&
-      ["Posterior", "Percutânea"].includes(approach),
+      ["Posterior", "Percutânea"].includes(approach) &&
+      !/fratura|fratura-luxação|trauma/i.test(diagnosis || ""),
     reference: "Cenário 2.6, p. 39–40",
     codes: [
       { code: "3.07.15.01-6", description: "Artrodese da coluna com instrumentação por segmento", role: "principal", condition: "Conforme segmentos efetivamente artrodesados; confirmar unidade de cobrança." },
