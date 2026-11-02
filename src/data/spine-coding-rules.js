@@ -357,6 +357,31 @@ const scenarios = [
     ]
   },
   {
+    id: "spinal-implant-removal-pseudarthrosis",
+    title: "Retirada de implantes e/ou tratamento de pseudartrose da coluna",
+    match: ({ subtype, diagnosis }) =>
+      ["Revisão de artrodese", "Artrodese", "Outro"].includes(subtype) &&
+      /pseudartrose|falha de fus[aã]o|retirada de material de s[ií]ntese|retirada de implante|troca de material de s[ií]ntese/i.test(diagnosis || ""),
+    reference: "Cenário 6.5, p. 140–142",
+    codes: [
+      { code: "3.07.15.24-5", description: "Pseudartrose de coluna — tratamento cirúrgico", role: "condicional", condition: "Quando houver pseudartrose documentada; cenário de retirada/revisão de implantes." },
+      { code: "3.07.15.27-0", description: "Retirada de material de síntese — tratamento cirúrgico", role: "principal", condition: "Se houver retirada ou troca efetiva do material." },
+      { code: "3.07.15.01-6", description: "Artrodese da coluna com instrumentação por segmento", role: "condicional", condition: "Se houver nova artrodese; concomitante ao código 3.07.15.02-4 em artrodese 360°." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior ou póstero-lateral", role: "condicional", condition: "Se houver nova artrodese 360°, em conjunto com 3.07.15.01-6." },
+      { code: "3.07.15.39-3", description: "Hérnia de disco cervical — tratamento cirúrgico", role: "condicional", condition: "Discectomia para interposição de enxerto/cage em segmento cervical." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar — tratamento cirúrgico", role: "condicional", condition: "Discectomia para interposição de enxerto/cage em segmento torácico/lombar." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal vertebral estreito por segmento", role: "condicional", condition: "Somente se realizado." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Somente se houver retirada autóloga." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "evento", condition: "Somente se intercorrência ocorrer e for tratada." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Se necessário para posicionamento/fixação cervical." },
+      { code: "2.02.02.04-0", description: "Monitorização neurofisiológica intraoperatória em Neurocirurgia", role: "condicional", condition: "O manual lista separadamente este código e o de cirurgia espinhal/ortopedia; avaliar equipe e contrato." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória em cirurgia espinhal/ortopedia", role: "condicional", condition: "Justificar e avaliar destinação à equipe especializada; não fundir com o código 2.02.02.04-0." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
     id: "spinal-biopsy",
     title: "Biópsia de lesão vertebral",
     match: ({ subtype, diagnosis }) =>
