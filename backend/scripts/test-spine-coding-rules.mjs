@@ -20,7 +20,7 @@ const infection = getSpineCodingSuggestions({
   subtype: "Descompressão", region: "Toracolombar", approach: "Posterior",
   diagnosis: "Espondilodiscite com abscesso epidural"
 });
-assert.equal(infection?.scenarioId, "posterior-spinal-infection");
+assert.equal(infection?.scenarioId, "spinal-infection-posterior-no-fusion");
 
 // Tumor, deformity and infection diagnoses must not be suggested as generic
 // degenerative posterior fusion when no dedicated scenario is available.
