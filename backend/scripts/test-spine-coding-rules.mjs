@@ -147,13 +147,13 @@ const adultDeformity = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Lombar", approach: "Anterior e posterior",
   diagnosis: "Deformidade lombar degenerativa do adulto com desequilíbrio sagital"
 });
-assert.equal(adultDeformity?.scenarioId, "adult-thoracolumbar-deformity-360");
+assert.equal(adultDeformity?.scenarioId, "deformity-adult-360-fusion");
 
 const craniovertebral = getSpineCodingSuggestions({
   subtype: "Descompressão", region: "Cervical", approach: "Posterior",
   diagnosis: "Malformação craniovertebral tipo Chiari"
 });
-assert.equal(craniovertebral?.scenarioId, "craniovertebral-malformation-decompression-fusion");
+assert.equal(craniovertebral?.scenarioId, "deformity-craniovertebral-decompression");
 
 // Tumor do corpo vertebral com corpectomia deve cair no cenário específico.
 const tumorCorpectomy = getSpineCodingSuggestions({
