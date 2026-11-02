@@ -154,6 +154,8 @@ model Surgery {
   expectedRevenue  Decimal      @default(0) @map("expected_revenue") @db.Decimal(12, 2)
   received         Decimal      @default(0) @db.Decimal(12, 2)
   notes            String?
+  requestDetails   Json?        @map("request_details")
+  suggestedCodes   Json?        @map("suggested_codes")
   createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
