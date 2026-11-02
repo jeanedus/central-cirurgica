@@ -163,6 +163,14 @@ assert.equal(implantRemoval?.scenarioId, "spinal-implant-removal-pseudarthrosis"
 assert.ok(implantRemoval.codes.some(code => code.code === "3.07.15.24-5"));
 assert.ok(implantRemoval.codes.some(code => code.code === "2.02.02.04-0"));
 assert.ok(implantRemoval.codes.some(code => code.code === "2.02.02.09-1"));
+assert.ok(implantRemoval.codes.every(code => code.quantity === null && code.requiresReview));
+
+const csfFistula = getSpineCodingSuggestions({
+  subtype: "Revisão de artrodese", region: "Lombar", approach: "Posterior",
+  diagnosis: "Fístula liquórica pós-operatória aberta após cirurgia da coluna"
+});
+assert.equal(csfFistula?.scenarioId, "open-csf-fistula-repair");
+assert.equal(csfFistula.codes.find(code => code.code === "3.14.01.26-0").role, "principal");
 
 const vertebralBiopsy = getSpineCodingSuggestions({
   subtype: "Outro", region: "Torácica", approach: "Percutânea",
