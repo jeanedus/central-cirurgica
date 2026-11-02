@@ -7,7 +7,7 @@ import { renderAuthScreen } from "./modules/auth-screen.js";
 const root = document.querySelector("#appContent");
 const shell = document.querySelector("#appShell");
 const authRoot = document.querySelector("#authScreen");
-const titles = { dashboard: "Visão geral", procedures: "Procedimentos", surgeries: "Cirurgias" };
+const titles = { dashboard: "Visão geral", procedures: "Procedimentos", surgeries: "Pedidos cirúrgicos" };
 let currentView = "dashboard";
 let currentUser = null;
 
