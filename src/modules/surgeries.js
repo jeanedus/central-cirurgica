@@ -15,6 +15,33 @@ export async function renderSurgeries(root) {
       <div class="form-row"><label>Especialidade<select name="specialty" required><option>Coluna</option><option>Crânio</option><option>Nervos periféricos</option><option>Outros</option></select></label><label>Hospital / unidade<input name="hospital" maxlength="160" placeholder="Hospital" /></label></div>
       <div class="form-row"><label>Origem<select name="payer"><option>Convênio</option><option>SUS</option><option>Particular</option></select></label><label>Status<select name="status">${STATUSES.map(status => `<option>${status}</option>`).join("")}</select></label></div>
       <div class="form-row"><label>Data da solicitação<input type="date" name="requestDate" /></label><label>Data da cirurgia<input type="date" name="date" /></label></div>
+      <div class="section-divider">CARACTERÍSTICAS DO PEDIDO CIRÚRGICO</div>
+      <div class="form-row">
+        <label>Tipo de cirurgia<select name="operationType"><option value="Coluna">Coluna</option></select></label>
+        <label>Subtipo<select name="subtype" id="requestSubtype"><option>Artrodese</option><option>Discectomia</option><option>Descompressão</option><option>Artroplastia</option><option>Vertebroplastia / cifoplastia</option><option>Cirurgia endoscópica</option><option>Revisão de artrodese</option><option>Outro</option></select></label>
+      </div>
+      <div class="form-row">
+        <label>Região<select name="region"><option value="Lombar">Lombar</option><option value="Cervical">Cervical</option><option value="Torácica">Torácica</option><option value="Toracolombar">Toracolombar</option><option value="Sacral">Sacral</option><option value="Multissegmentar">Multissegmentar</option></select></label>
+        <label>Via de acesso / técnica<select name="approach" id="requestApproach"><option value="Posterior">Posterior</option><option value="Anterior">Anterior</option><option value="Lateral">Lateral</option><option value="Anterior e posterior">Anterior e posterior</option><option value="Endoscópica">Endoscópica</option><option value="Percutânea">Percutânea</option><option value="Outra / não definida">Outra / não definida</option></select></label>
+      </div>
+      <div class="form-row">
+        <label>Níveis / segmentos<input name="levels" placeholder="Ex.: L4-L5; L5-S1" maxlength="160" /></label>
+        <label>Lateralidade<select name="laterality"><option value="Não se aplica">Não se aplica</option><option value="Direita">Direita</option><option value="Esquerda">Esquerda</option><option value="Bilateral">Bilateral</option></select></label>
+      </div>
+      <label>Diagnóstico / indicação<input name="diagnosis" maxlength="300" placeholder="Ex.: hérnia discal, estenose, espondilolistese..." /></label>
+      <div class="form-row">
+        <label>É revisão cirúrgica?<select name="revision"><option value="Não">Não</option><option value="Sim">Sim</option></select></label>
+        <label>Descompressão associada?<select name="decompression"><option value="Sim">Sim</option><option value="Não">Não</option></select></label>
+      </div>
+      <label>Justificativa clínica / observações para o pedido<textarea name="clinicalJustification" rows="3" maxlength="4000" placeholder="Descreva sintomas, correlação clínico-radiológica, tratamentos prévios e motivo da indicação. Não inclua identificadores pessoais neste ambiente de desenvolvimento."></textarea></label>
+      <section class="panel" style="margin:12px 0;padding:14px">
+        <div class="panel-heading"><div><strong>Códigos candidatos</strong><p class="muted">Busca textual no SIGTAP importado. Selecione somente os códigos que você confirmar.</p></div><button type="button" class="button button-secondary button-small" id="suggestCodes">Buscar sugestões</button></div>
+        <div id="suggestedCodeList" class="muted">Escolha o subtipo e clique em “Buscar sugestões”.</div>
+      </section>
+      <section class="panel" style="margin:12px 0;padding:14px">
+        <div class="panel-heading"><div><strong>Materiais / OPME sugeridos</strong><p class="muted">Sugestões iniciais editáveis; confirme indicação e quantidade para cada caso.</p></div><button type="button" class="button button-secondary button-small" id="generateMaterials">Gerar sugestões</button></div>
+        <div id="suggestedMaterialsList" class="muted">Clique em “Gerar sugestões” para montar a lista inicial.</div>
+      </section>
       <div class="section-divider">CONTROLE FINANCEIRO</div>
       <div class="form-row"><label>Valor previsto / faturado (R$)<input type="number" name="expectedRevenue" min="0" step="0.01" value="0" required /></label><label>Valor recebido (R$)<input type="number" name="received" min="0" step="0.01" value="0" required /></label></div>
       <label>Observações<textarea name="notes" rows="2" maxlength="5000" placeholder="Informações administrativas sem dados clínicos identificáveis"></textarea></label>
@@ -48,6 +75,9 @@ export async function renderSurgeries(root) {
   root.querySelector("#addMaterial").addEventListener("click", () => openMaterialForm(root));
   root.querySelector("#closeMaterialForm").addEventListener("click", () => materialFormDialog.close());
   root.querySelector("#cancelMaterial").addEventListener("click", () => materialFormDialog.close());
+  root.querySelector("#suggestCodes").addEventListener("click", () => loadRequestCodeSuggestions(root));
+  root.querySelector("#generateMaterials").addEventListener("click", () => renderRequestMaterialSuggestions(root));
+  root.querySelector("#requestSubtype").addEventListener("change", () => renderRequestMaterialSuggestions(root));
 
   root.querySelector("#materialForm").addEventListener("submit", async event => {
     event.preventDefault();
@@ -89,7 +119,26 @@ export async function renderSurgeries(root) {
       procedureId: selectedProcedure.id,
       procedure: selectedProcedure.name,
       expectedRevenue: Number(data.expectedRevenue),
-      received: Number(data.received)
+      received: Number(data.received),
+      requestDetails: {
+        operationType: data.operationType,
+        subtype: data.subtype,
+        region: data.region,
+        approach: data.approach,
+        levels: data.levels.split(/[;,]/).map(value => value.trim()).filter(Boolean),
+        laterality: data.laterality,
+        diagnosis: data.diagnosis,
+        revision: data.revision === "Sim",
+        decompression: data.decompression === "Sim",
+        clinicalJustification: data.clinicalJustification
+      },
+      suggestedCodes: [...form.querySelectorAll("[data-request-code]:checked")].map(input => JSON.parse(input.value)),
+      suggestedMaterials: [...form.querySelectorAll("[data-request-material]:checked")].map(input => ({
+        category: input.dataset.category,
+        description: input.dataset.description,
+        quantity: Number(form.querySelector(`[data-material-quantity="${input.dataset.materialKey}"]`)?.value || 1),
+        notes: input.dataset.notes || "Sugestão do modelo; revisar antes do envio."
+      }))
     };
     const editingId = dialog.dataset.editId;
     submit.disabled = true;
@@ -147,6 +196,13 @@ function openEditDialog(root, surgeryId) {
   form.elements.expectedRevenue.value = Number(item.expectedRevenue || 0);
   form.elements.received.value = Number(item.received || 0);
   form.elements.notes.value = item.notes || "";
+  const details = item.requestDetails || {};
+  for (const key of ["operationType","subtype","region","approach","laterality","diagnosis","clinicalJustification"]) {
+    if (details[key] && form.elements[key]) form.elements[key].value = details[key];
+  }
+  if (form.elements.levels) form.elements.levels.value = Array.isArray(details.levels) ? details.levels.join("; ") : "";
+  if (form.elements.revision) form.elements.revision.value = details.revision ? "Sim" : "Não";
+  if (form.elements.decompression) form.elements.decompression.value = details.decompression ? "Sim" : "Não";
   form.querySelector('[type="submit"]').textContent = "Salvar alterações";
   dialog.showModal();
 }
@@ -292,6 +348,85 @@ function openMaterialForm(root, materialId = "") {
   }
   form.querySelector('[type="submit"]').textContent = item ? "Salvar alterações" : "Salvar material";
   dialog.showModal();
+}
+
+function requestCodeSearchTerm(subtype) {
+  const terms = {
+    "Artrodese": "artrodese",
+    "Discectomia": "discectomia",
+    "Descompressão": "descompressão",
+    "Artroplastia": "artroplastia",
+    "Vertebroplastia / cifoplastia": "vertebroplastia",
+    "Cirurgia endoscópica": "endoscopia",
+    "Revisão de artrodese": "artrodese"
+  };
+  return terms[subtype] || subtype;
+}
+
+async function loadRequestCodeSuggestions(root) {
+  const list = root.querySelector("#suggestedCodeList");
+  list.innerHTML = '<div class="empty-state">Buscando candidatos no SIGTAP...</div>';
+  try {
+    const subtype = root.querySelector("#requestSubtype").value;
+    const query = new URLSearchParams({ search: requestCodeSearchTerm(subtype), page: "1", pageSize: "20" });
+    const result = await apiRequest(`/catalogs/SIGTAP/codes?${query.toString()}`);
+    if (!result.codes?.length) {
+      list.innerHTML = '<div class="empty-state">Nenhum candidato encontrado. Tente pesquisar manualmente na tela de Procedimentos e códigos.</div>';
+      return;
+    }
+    list.innerHTML = result.codes.map((item, index) => {
+      const value = JSON.stringify({ system: "SIGTAP", code: item.code, description: item.description, catalogVersion: result.version?.versionLabel || "" }).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+      return `<label style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" data-request-code value="${value}" /><span><strong>${escapeHTML(item.code)}</strong> — ${escapeHTML(item.description)}</span></label>`;
+    }).join("");
+    list.insertAdjacentHTML("beforeend", '<p class="muted">Os resultados são candidatos por semelhança textual, não uma regra de codificação. Confirme código, quantidade e compatibilidade antes de usar.</p>');
+  } catch (error) {
+    list.innerHTML = `<div class="empty-state">${escapeHTML(error.message)}. Verifique se a competência SIGTAP está disponível.</div>`;
+  }
+}
+
+function renderRequestMaterialSuggestions(root) {
+  const subtype = root.querySelector("#requestSubtype").value;
+  const approach = root.querySelector("#requestApproach").value;
+  let items = [];
+  if (subtype === "Artrodese" || subtype === "Revisão de artrodese") {
+    if (["Posterior","Percutânea"].includes(approach)) {
+      items = [
+        ["OPME","Sistema de fixação posterior (parafusos e hastes)","Confirmar número de níveis, anatomia e configuração."],
+        ["OPME","Enxerto ósseo / substituto ósseo","Definir tipo e quantidade conforme planejamento."]
+      ];
+    } else if (["Anterior","Lateral","Anterior e posterior"].includes(approach)) {
+      items = [
+        ["OPME","Dispositivo intersomático (cage)","Confirmar níveis, dimensões e material."],
+        ["OPME","Enxerto ósseo / substituto ósseo","Definir tipo e quantidade conforme planejamento."]
+      ];
+      if (approach === "Anterior" || approach === "Anterior e posterior") items.push(["OPME","Sistema de placa e parafusos anterior","Avaliar necessidade conforme técnica e dispositivo escolhido."]);
+      if (approach === "Anterior e posterior") items.push(["OPME","Sistema de fixação posterior (parafusos e hastes)","Confirmar configuração e níveis."]);
+    } else {
+      items = [
+        ["OPME","Sistema de fixação / estabilização","Definir conforme via e técnica escolhidas."],
+        ["OPME","Enxerto ósseo / substituto ósseo","Definir tipo e quantidade conforme planejamento."]
+      ];
+    }
+  } else if (subtype === "Vertebroplastia / cifoplastia") {
+    items = [["OPME","Cimento ósseo","Volume e apresentação conforme planejamento."],["OPME","Kit de acesso / cânulas","Compatível com técnica e níveis planejados."]];
+  } else if (subtype === "Cirurgia endoscópica") {
+    items = [["Instrumental","Kit / cânula de endoscopia de coluna","Confirmar disponibilidade e compatibilidade do instrumental."],["Descartável","Itens descartáveis específicos da plataforma","Conferir composição do kit utilizado."]];
+  } else if (subtype === "Discectomia" || subtype === "Descompressão") {
+    items = [["Descartável","Material hemostático","Selecionar conforme necessidade intraoperatória."],["Instrumental","Broca / instrumental de alta rotação","Conferir disponibilidade do instrumental reutilizável."]];
+  } else if (subtype === "Artroplastia") {
+    items = [["OPME","Prótese / disco artificial","Selecionar modelo, dimensões e níveis conforme indicação."]];
+  } else {
+    items = [["OPME","Material específico do procedimento","Descrever e ajustar conforme planejamento cirúrgico."]];
+  }
+  const list = root.querySelector("#suggestedMaterialsList");
+  list.innerHTML = items.map((item,index) => {
+    const key = `m${index}`;
+    return `<div style="display:grid;grid-template-columns:auto minmax(0,1fr) 90px;gap:8px;align-items:start;padding:9px 0;border-bottom:1px solid var(--line)">
+      <input type="checkbox" data-request-material data-material-key="${key}" data-category="${escapeHTML(item[0])}" data-description="${escapeHTML(item[1])}" data-notes="${escapeHTML(item[2])}" checked aria-label="Incluir material" />
+      <span><strong>${escapeHTML(item[1])}</strong><small style="display:block;color:var(--muted)">${escapeHTML(item[0])} · ${escapeHTML(item[2])}</small></span>
+      <label>Qtd.<input type="number" min="1" max="500" value="1" data-material-quantity="${key}" /></label>
+    </div>`;
+  }).join("") + '<p class="muted">Quantidades iniciais são apenas marcadores editáveis. Ajuste conforme níveis, técnica, implantes e planejamento individual.</p>';
 }
 
 function bindStatusChange(root) {
