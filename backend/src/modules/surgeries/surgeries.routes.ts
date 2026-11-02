@@ -37,7 +37,20 @@ const surgerySchema = z.object({
   date: z.string().date().optional().or(z.literal("")),
   expectedRevenue: z.coerce.number().min(0).max(9999999999),
   received: z.coerce.number().min(0).max(9999999999),
-  notes: z.string().trim().max(5000).optional().default("")
+  notes: z.string().trim().max(5000).optional().default(""),
+  requestDetails: z.record(z.unknown()).optional(),
+  suggestedCodes: z.array(z.object({
+    system: z.enum(["TUSS", "SIGTAP"]),
+    code: z.string().trim().min(1).max(40),
+    description: z.string().trim().min(1).max(1000),
+    catalogVersion: z.string().trim().max(120).optional()
+  })).max(30).optional().default([]),
+  suggestedMaterials: z.array(z.object({
+    category: z.string().trim().min(1).max(80),
+    description: z.string().trim().min(2).max(240),
+    quantity: z.coerce.number().int().min(1).max(500),
+    notes: z.string().trim().max(3000).optional().default("")
+  })).max(50).optional().default([])
 });
 
 async function getMembership(userId: string, organizationId: string) {
@@ -79,6 +92,8 @@ const list: RequestHandler = async (request, response) => {
         expectedRevenue: Number(item.expectedRevenue),
         received: Number(item.received),
         notes: item.notes || "",
+        requestDetails: item.requestDetails || null,
+        suggestedCodes: item.suggestedCodes || [],
         createdAt: item.createdAt.toISOString()
       }))
     });
@@ -136,7 +151,20 @@ const create: RequestHandler = async (request, response) => {
         surgeryDate: parsed.data.date ? new Date(`${parsed.data.date}T12:00:00.000Z`) : null,
         expectedRevenue: new Prisma.Decimal(parsed.data.expectedRevenue),
         received: new Prisma.Decimal(parsed.data.received),
-        notes: parsed.data.notes || null
+        notes: parsed.data.notes || null,
+        requestDetails: parsed.data.requestDetails ? parsed.data.requestDetails as Prisma.InputJsonValue : Prisma.JsonNull,
+        suggestedCodes: parsed.data.suggestedCodes.length ? parsed.data.suggestedCodes as Prisma.InputJsonValue[] : Prisma.JsonNull,
+        ...(parsed.data.suggestedMaterials.length ? {
+          materials: {
+            create: parsed.data.suggestedMaterials.map(item => ({
+              category: item.category,
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: new Prisma.Decimal(0),
+              notes: item.notes || "Item sugerido pelo modelo de pedido; revisar indicação e quantidade."
+            }))
+          }
+        } : {})
       }
     });
     await prisma.auditLog.create({
@@ -251,7 +279,9 @@ const update: RequestHandler = async (request, response) => {
         surgeryDate: parsed.data.date ? new Date(`${parsed.data.date}T12:00:00.000Z`) : null,
         expectedRevenue: new Prisma.Decimal(parsed.data.expectedRevenue),
         received: new Prisma.Decimal(received),
-        notes: parsed.data.notes || null
+        notes: parsed.data.notes || null,
+        requestDetails: parsed.data.requestDetails ? parsed.data.requestDetails as Prisma.InputJsonValue : Prisma.JsonNull,
+        suggestedCodes: parsed.data.suggestedCodes.length ? parsed.data.suggestedCodes as Prisma.InputJsonValue[] : Prisma.JsonNull
       }
     });
     await prisma.auditLog.create({
