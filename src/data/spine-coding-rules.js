@@ -11,6 +11,87 @@ const isNonDegenerativeDiagnosis = diagnosis =>
 
 const scenarios = [
   {
+    id: "pain-cryo-denervation",
+    title: "Criodenervação facetária por segmento",
+    match: ({ subtype, approach, diagnosis }) => ["Outro", "Descompressão"].includes(subtype) && ["Percutânea", "Outra / não definida"].includes(approach) && /criodenerva[cç][aã]o/i.test(diagnosis || ""),
+    reference: "Cenário 8.2, p. 158",
+    codes: [
+      { code: "3.14.03.03-4", description: "Denervação percutânea de faceta articular — por segmento", role: "principal", condition: "Multiplicar pelo número de segmentos vertebrais efetivamente denervados." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "pain-chemical-denervation",
+    title: "Denervação facetária por método químico",
+    match: ({ subtype, approach, diagnosis }) => ["Outro", "Descompressão"].includes(subtype) && ["Percutânea", "Outra / não definida"].includes(approach) && /denerva[cç][aã]o.*(qu[ií]mic|[aá]lcool|fenol|oz[oô]nio)|(qu[ií]mic|[aá]lcool|fenol).*denerva[cç][aã]o/i.test(diagnosis || ""),
+    reference: "Cenário 8.3, p. 159",
+    codes: [
+      { code: "3.14.03.03-4", description: "Denervação percutânea de faceta articular — por segmento", role: "principal", condition: "Multiplicar pelo número de segmentos vertebrais abordados." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "pain-neurostimulation-laminectomy-test",
+    title: "Neuroestimulação medular por laminectomia — fase teste",
+    match: ({ subtype, approach, diagnosis }) => ["Outro", "Descompressão"].includes(subtype) && ["Posterior", "Outra / não definida"].includes(approach) && /neuroestimul|estimula[cç][aã]o el[eé]trica medular/i.test(diagnosis || "") && /teste|trial/i.test(diagnosis || "") && /laminectomia|laminotomia|aberta/i.test(diagnosis || ""),
+    reference: "Cenário 8.7, p. 163",
+    codes: [
+      { code: "3.14.01.10-4", description: "Implante de eletrodos medular ou cerebral", role: "principal", condition: "Implante de eletrodo para fase teste." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "associado", condition: "Acesso por laminectomia/laminotomia." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "pain-neurostimulation-laminectomy-implant",
+    title: "Neuroestimulação medular por laminectomia — implante definitivo",
+    match: ({ subtype, approach, diagnosis }) => ["Outro", "Descompressão"].includes(subtype) && ["Posterior", "Outra / não definida"].includes(approach) && /neuroestimul|estimula[cç][aã]o el[eé]trica medular/i.test(diagnosis || "") && /implante definitivo|gerador definitivo/i.test(diagnosis || "") && /laminectomia|laminotomia|aberta/i.test(diagnosis || ""),
+    reference: "Cenário 8.8, p. 164",
+    codes: [
+      { code: "3.14.01.10-4", description: "Implante de eletrodos medular ou cerebral", role: "principal", condition: "Conforme eletrodo implantado; conferir se já foi implantado na fase teste." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "associado", condition: "Acesso por laminectomia/laminotomia." },
+      { code: "3.14.03.14-0", description: "Implante de gerador para neuroestimulação", role: "associado", condition: "Implante do gerador definitivo." },
+      { code: "4.01.03.43-9", description: "Impedanciometria", role: "condicional", condition: "Conforme teste do sistema." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "pain-neurostimulation-revision",
+    title: "Revisão de sistema de neuroestimulação",
+    match: ({ subtype, approach, diagnosis }) => ["Outro", "Revisão de artrodese"].includes(subtype) && ["Posterior", "Percutânea", "Outra / não definida"].includes(approach) && /revis[aã]o.*(neuroestimul|estimulador)|neuroestimul.*revis[aã]o/i.test(diagnosis || ""),
+    reference: "Cenário 8.9, p. 165",
+    codes: [
+      { code: "3.14.01.22-8", description: "Revisão de sistema de neuroestimulação", role: "principal", condition: "Conforme componente do sistema revisado e localização do eletrodo." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "condicional", condition: "Conforme técnica e registro." }
+    ]
+  },
+  {
+    id: "pain-selective-rhizotomy-spasticity",
+    title: "Rizotomia seletiva/superseletiva para espasticidade",
+    match: ({ subtype, approach, diagnosis }) => ["Outro", "Descompressão"].includes(subtype) && ["Posterior", "Outra / não definida"].includes(approach) && /rizotomia seletiva|rizotomia superseletiva|espasticidade/i.test(diagnosis || ""),
+    reference: "Cenário 8.10, p. 166",
+    codes: [
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "associado", condition: "Conforme acesso cirúrgico descrito." },
+      { code: "3.14.03.12-3", description: "Exploração cirúrgica de nervos (neurólise externa)", role: "principal", condition: "Conforme nervos explorados." },
+      { code: "3.14.03.21-2", description: "Microneurólise intraneural ou intrafascicular de dois ou mais nervos", role: "condicional", condition: "Conforme etapa intraneural/intrafascicular realizada." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "condicional", condition: "Conforme técnica e registro; conferir inconsistência textual da indicação no manual." }
+    ]
+  },
+  {
+    id: "pain-ozone-therapy",
+    title: "Ozonioterapia para controle de dor osteomuscular da coluna",
+    match: ({ subtype, approach, diagnosis }) => ["Outro", "Descompressão"].includes(subtype) && ["Percutânea", "Outra / não definida"].includes(approach) && /oz[oô]nio|ozonioterapia/i.test(diagnosis || ""),
+    reference: "Cenário 8.13, p. 169",
+    codes: [
+      { code: "3.07.15.39-3", description: "Hérnia de disco cervical", role: "condicional", condition: "Conforme segmento cervical efetivamente tratado; alternativa anatômica ao código toracolombar." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar", role: "condicional", condition: "Conforme segmento torácico/lombar efetivamente tratado; normalmente excludente do código cervical, salvo segmentos distintos." },
+      { code: "4.08.13.36-3", description: "Coluna vertebral: infiltração foraminal ou facetária ou articular", role: "associado", condition: "Uma vez por procedimento conforme nota específica do cenário 8.13; não aplicar multiplicador do cenário 8.1." },
+      { code: "3.16.02.16-9", description: "Bloqueio peridural ou subaracnóideo com corticoide", role: "condicional", condition: "Multiplicidade por segmentos/níveis conforme nota específica do cenário 8.13." },
+      { code: "3.16.02.12-6", description: "Bloqueio facetário para-espinhoso", role: "condicional", condition: "Conforme segmentos/níveis efetivamente bloqueados." },
+      { code: "2.01.03.30-1", description: "Infiltração de ponto gatilho ou agulhamento seco", role: "condicional", condition: "Por músculo efetivamente tratado." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
     id: "postoperative-spinal-infection",
     title: "Infecção pós-operatória da coluna — desbridamento/drenagem",
     match: ({ subtype, diagnosis }) =>
