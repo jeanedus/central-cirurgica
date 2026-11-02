@@ -203,6 +203,7 @@ function openEditDialog(root, surgeryId) {
   if (form.elements.levels) form.elements.levels.value = Array.isArray(details.levels) ? details.levels.join("; ") : "";
   if (form.elements.revision) form.elements.revision.value = details.revision ? "Sim" : "Não";
   if (form.elements.decompression) form.elements.decompression.value = details.decompression ? "Sim" : "Não";
+  renderSavedRequestCodes(root, item.suggestedCodes || []);
   form.querySelector('[type="submit"]').textContent = "Salvar alterações";
   dialog.showModal();
 }
@@ -361,6 +362,18 @@ function requestCodeSearchTerm(subtype) {
     "Revisão de artrodese": "artrodese"
   };
   return terms[subtype] || subtype;
+}
+
+function renderSavedRequestCodes(root, codes) {
+  const list = root.querySelector("#suggestedCodeList");
+  if (!codes.length) {
+    list.textContent = "Nenhum código foi selecionado para este pedido. Clique em “Buscar sugestões” para pesquisar candidatos.";
+    return;
+  }
+  list.innerHTML = codes.map(item => {
+    const value = JSON.stringify(item).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+    return `<label style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" data-request-code value="${value}" checked /><span><strong>${escapeHTML(item.code)}</strong> — ${escapeHTML(item.description)}</span></label>`;
+  }).join("") + '<p class="muted">Códigos já selecionados para este pedido. Revise antes de salvar.</p>';
 }
 
 async function loadRequestCodeSuggestions(root) {
