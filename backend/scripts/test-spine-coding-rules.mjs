@@ -217,11 +217,11 @@ const kyphosis = getSpineCodingSuggestions({
 });
 assert.equal(kyphosis?.scenarioId, "deformity-pathologic-kyphosis");
 
-const hemivertebra = getSpineCodingSuggestions({
+const hemivertebraExpanded = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
   diagnosis: "Escoliose congênita com hemivértebra"
 });
-assert.equal(hemivertebra?.scenarioId, "deformity-congenital-hemivertebra");
+assert.equal(hemivertebraExpanded?.scenarioId, "deformity-congenital-hemivertebra");
 
 const cervicalDeformity = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Cervical", approach: "Anterior e posterior",
