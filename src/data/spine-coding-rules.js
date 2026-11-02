@@ -11,6 +11,177 @@ const isNonDegenerativeDiagnosis = diagnosis =>
 
 const scenarios = [
   {
+    id: "deformity-early-onset-growth",
+    title: "Escoliose de início precoce com sistema de crescimento",
+    match: ({ diagnosis }) => /escoliose.*(in[ií]cio precoce|precoce).*(crescimento|haste)|sistema de crescimento.*escoliose/i.test(diagnosis || ""),
+    reference: "Cenário 5.1, p. 109–110",
+    codes: [
+      { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.01-6", description: "Artrodese da coluna com instrumentação por segmento", role: "previsto_na_tecnica", condition: "Conforme configuração descrita no manual." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Somente se houver retirada de enxerto." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Se houver tração craniana." },
+      { code: "3.07.15.29-6", description: "Tração cervical transesquelética", role: "condicional", condition: "Se houver tração cervical." },
+      { code: "3.07.09.03-2", description: "Tração transesquelética por membro", role: "condicional", condition: "Se houver tração por membro." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar risco neurológico/déficit prévio; código destinado à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro de uso." }
+    ]
+  },
+  {
+    id: "deformity-growth-rod-lengthening",
+    title: "Alongamento de haste de crescimento",
+    match: ({ diagnosis }) => /alongamento.*(haste|sistema).*crescimento|haste de crescimento.*alongamento/i.test(diagnosis || ""),
+    reference: "Cenário 5.2, p. 111",
+    codes: [
+      { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "O manual indica a configuração da tabela para esta técnica." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Com justificativa; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro de uso." }
+    ]
+  },
+  {
+    id: "deformity-adolescent-posterior-fusion",
+    title: "Escoliose do adolescente com artrodese posterior",
+    match: ({ subtype, diagnosis }) => ["Artrodese", "Revisão de artrodese"].includes(subtype) && /escoliose.*(adolescente|idiop[aá]tica)|adolescente.*escoliose/i.test(diagnosis || "") && !/cong[eê]nita|hemiv[eé]rtebra/i.test(diagnosis || ""),
+    reference: "Cenário 5.3, p. 112–114",
+    codes: [
+      { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "previsto_na_tecnica", condition: "Artrodese posterior." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior ou póstero-lateral", role: "condicional", condition: "Concomitante ao código 3.07.15.01-6 em artrodese 360°." },
+      { code: "3.07.15.22-9", description: "Osteotomia de coluna", role: "condicional", condition: "Se osteotomia/VCR realizada; VCR tem regra própria de multiplicidade." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar", role: "condicional", condition: "Nos casos de VCR, conforme nota do manual." },
+      { code: "3.07.15.28-8", description: "Substituição de corpo vertebral", role: "condicional", condition: "Nos casos de VCR." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Se houver retirada." },
+      { code: "3.06.01.02-9", description: "Costectomia", role: "condicional", condition: "Quando realizada costoplastia; unidade por arco costal conforme tabela." },
+      { code: "3.07.15.27-0", description: "Retirada de material de síntese", role: "condicional", condition: "Cirurgia definitiva após sistema prévio compatível com crescimento." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "evento", condition: "Somente se intercorrência ocorrer e for tratada." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Se houver tração craniana." },
+      { code: "3.07.15.29-6", description: "Tração cervical transesquelética", role: "condicional", condition: "Se houver tração." },
+      { code: "3.07.09.03-2", description: "Tração transesquelética por membro", role: "condicional", condition: "Se houver tração." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "deformity-pathologic-kyphosis",
+    title: "Cifose patológica com artrodese posterior",
+    match: ({ subtype, diagnosis }) => ["Artrodese", "Revisão de artrodese"].includes(subtype) && /cifose patol[oó]gica|cifose.*artrodese/i.test(diagnosis || ""),
+    reference: "Cenário 5.4, p. 115–116",
+    codes: [
+      { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "previsto_na_tecnica", condition: "Artrodese posterior." },
+      { code: "3.07.15.22-9", description: "Osteotomia de coluna", role: "condicional", condition: "Se osteotomia realizada." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Se houver retirada." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "evento", condition: "Somente se intercorrência ocorrer e for tratada." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Se houver tração craniana." },
+      { code: "3.07.15.29-6", description: "Tração cervical transesquelética", role: "condicional", condition: "Se houver tração." },
+      { code: "3.07.09.03-2", description: "Tração transesquelética por membro", role: "condicional", condition: "Se houver tração." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "deformity-congenital-hemivertebra",
+    title: "Escoliose congênita com ressecção de hemivértebra",
+    match: ({ subtype, diagnosis }) => ["Artrodese", "Descompressão", "Outro"].includes(subtype) && /hemiv[eé]rtebra|escoliose cong[eê]nita/i.test(diagnosis || ""),
+    reference: "Cenário 5.5, p. 117–118",
+    codes: [
+      { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.17-2", description: "Ressecção de hemivértebra via anterior ou posterior", role: "previsto_na_tecnica", condition: "Ressecção de hemivértebra." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "previsto_na_tecnica", condition: "Conforme artrodese posterior." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior ou póstero-lateral", role: "previsto_na_tecnica", condition: "Concomitante na artrodese 360°." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Se houver retirada." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "evento", condition: "Somente se intercorrência ocorrer e for tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "deformity-adult-360-fusion",
+    title: "Deformidade toracolombar/lombar do adulto com artrodese 360°",
+    match: ({ subtype, approach, diagnosis }) => ["Artrodese", "Revisão de artrodese"].includes(subtype) && ["Anterior e posterior", "Lateral e posterior", "Outra / não definida"].includes(approach) && /deformidade.*(adulto|toracolombar|lombar|lombossacra)|escoliose.*adulto/i.test(diagnosis || ""),
+    reference: "Cenário 5.6, p. 119–121",
+    codes: [
+      { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "previsto_na_tecnica", condition: "Concomitante a 3.07.15.02-4 na artrodese 360°." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior ou póstero-lateral", role: "previsto_na_tecnica", condition: "Concomitante a 3.07.15.01-6 na artrodese 360°." },
+      { code: "3.07.15.22-9", description: "Osteotomia de coluna", role: "condicional", condition: "Se realizada." },
+      { code: "3.07.15.28-8", description: "Substituição de corpo vertebral", role: "condicional", condition: "Se corpectomia; multiplicidade por corpo vertebral conforme manual." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar", role: "condicional", condition: "Discectomia para cage/enxerto ou corpectomia; VCR tem regra específica." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Se realizada." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal estreito por segmento", role: "condicional", condition: "Se realizado." },
+      { code: "3.06.01.02-9", description: "Costectomia", role: "condicional", condition: "Se técnica envolver retirada de arcos costais." },
+      { code: "3.06.01.19-3", description: "Toracotomia para procedimento ortopédico sobre coluna", role: "condicional", condition: "Somente se acesso por toracotomia anterior/lateral." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Se houver retirada." },
+      { code: "3.07.15.24-5", description: "Pseudartrose de coluna — tratamento cirúrgico", role: "condicional", condition: "Deformidade iatrogênica com ou sem pseudartrose, conforme cenário." },
+      { code: "3.07.15.27-0", description: "Retirada de material de síntese", role: "condicional", condition: "Deformidade iatrogênica com ou sem pseudartrose." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "evento", condition: "Somente se intercorrência ocorrer e for tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "deformity-cervical-adult",
+    title: "Deformidade crânio-cervical/cervical/cervicotorácica do adulto",
+    match: ({ subtype, diagnosis }) => ["Artrodese", "Revisão de artrodese"].includes(subtype) && /deformidade.*(cervical|cr[aâ]nio.?cervical|cervicotor[aá]cica)|escoliose cervical|cifose cervical/i.test(diagnosis || ""),
+    reference: "Cenário 5.7, p. 122–124",
+    codes: [
+      { code: "3.07.15.10-5", description: "Dorso curvo/escoliose/giba costal — tratamento cirúrgico", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "previsto_na_tecnica", condition: "Concomitante a 3.07.15.02-4 na artrodese 360°." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior ou póstero-lateral", role: "previsto_na_tecnica", condition: "Concomitante a 3.07.15.01-6 na artrodese 360°." },
+      { code: "3.07.15.22-9", description: "Osteotomia de coluna", role: "condicional", condition: "Se realizada." },
+      { code: "3.07.15.28-8", description: "Substituição de corpo vertebral", role: "condicional", condition: "Se corpectomia; regra quantitativa específica no manual." },
+      { code: "3.07.15.39-3", description: "Hérnia de disco cervical", role: "condicional", condition: "Discectomia para cage/enxerto ou corpectomia." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Se realizada." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal estreito por segmento", role: "condicional", condition: "Se realizado." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Se houver retirada." },
+      { code: "3.07.15.24-5", description: "Pseudartrose de coluna — tratamento cirúrgico", role: "condicional", condition: "Deformidade iatrogênica com ou sem pseudartrose." },
+      { code: "3.07.15.27-0", description: "Retirada de material de síntese", role: "condicional", condition: "Deformidade iatrogênica com ou sem pseudartrose." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "evento", condition: "Somente se intercorrência ocorrer e for tratada." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano/fixação craniana", role: "condicional", condition: "Conforme necessidade de fixação/posicionamento descrita no manual." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "deformity-craniovertebral-decompression",
+    title: "Malformação craniovertebral — cirurgia descompressiva",
+    match: ({ subtype, diagnosis }) => ["Descompressão", "Outro"].includes(subtype) && /malforma[cç][aã]o craniovertebral|chiari|invagina[cç][aã]o basilar|impress[aã]o basilar/i.test(diagnosis || "") && !/fixa[cç][aã]o occipitocervical|artrodese occipitocervical/i.test(diagnosis || ""),
+    reference: "Cenário 5.8, p. 125–126",
+    codes: [
+      { code: "3.07.15.32-6", description: "Tratamento cirúrgico das malformações craniovertebrais", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.35-0", description: "Tratamento microcirúrgico de lesões intramedulares", role: "condicional", condition: "Conforme lesão associada efetivamente tratada." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Conforme posicionamento/fixação da cabeça." },
+      { code: "3.02.15.02-1", description: "Craniotomia descompressiva", role: "previsto_na_tecnica", condition: "Craniectomia suboccipital/descompressão da fossa posterior descrita." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "previsto_na_tecnica", condition: "Conforme técnica descrita." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "previsto_na_tecnica", condition: "Laminectomia de C1 descrita." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "condicional", condition: "Verificar contexto de ampliação dural/duroplastia e documentação." },
+      { code: "3.01.01.68-9", description: "Reconstrução com retalhos de gálea aponeurótica", role: "condicional", condition: "Quando houver ampliação dural com gálea." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
+    id: "deformity-craniovertebral-fusion",
+    title: "Malformação craniovertebral com fixação occipitocervical",
+    match: ({ subtype, diagnosis }) => ["Artrodese", "Revisão de artrodese"].includes(subtype) && /malforma[cç][aã]o craniovertebral|chiari|invagina[cç][aã]o basilar|impress[aã]o basilar/i.test(diagnosis || "") && /fixa[cç][aã]o occipitocervical|artrodese occipitocervical/i.test(diagnosis || ""),
+    reference: "Cenário 5.9, p. 127–128",
+    codes: [
+      { code: "3.07.15.32-6", description: "Tratamento cirúrgico das malformações craniovertebrais", role: "principal", condition: "Código principal do cenário." },
+      { code: "3.07.15.35-0", description: "Tratamento microcirúrgico de lesões intramedulares", role: "condicional", condition: "Conforme lesão associada efetivamente tratada." },
+      { code: "3.02.15.02-1", description: "Craniotomia descompressiva", role: "previsto_na_tecnica", condition: "Conforme técnica descrita." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico de fístula liquórica", role: "condicional", condition: "Conforme ampliação dural/duroplastia e nota do manual." },
+      { code: "3.01.01.68-9", description: "Reconstrução com retalhos de gálea aponeurótica", role: "condicional", condition: "Quando houver ampliação dural com gálea." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "previsto_na_tecnica", condition: "Conforme técnica descrita." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "previsto_na_tecnica", condition: "Conforme técnica descrita." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "previsto_na_tecnica", condition: "Fixação/artrodese occipitocervical posterior." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto ósseo autólogo", role: "condicional", condition: "Somente se houver retirada autóloga." },
+      { code: "3.07.09.01-6", description: "Instalação de halo craniano", role: "condicional", condition: "Conforme fixação/tração cranio-cervical." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Justificar; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia — por hora ou fração", role: "previsto_na_tecnica", condition: "Conforme registro." }
+    ]
+  },
+  {
     id: "pain-cryo-denervation",
     title: "Criodenervação facetária por segmento",
     match: ({ subtype, approach, diagnosis }) => ["Outro", "Descompressão"].includes(subtype) && ["Percutânea", "Outra / não definida"].includes(approach) && /criodenerva[cç][aã]o/i.test(diagnosis || ""),
