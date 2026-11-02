@@ -64,6 +64,8 @@ jobs:
         run: node --check ../src/modules/surgeries.js
       - name: Check spine coding rules syntax
         run: node --check ../src/data/spine-coding-rules.js
+      - name: Test spine coding scenario behavior
+        run: node --experimental-default-type=module scripts/test-spine-coding-rules.mjs
       - name: Validate SIGTAP fixed-width fixture without database writes
         run: node scripts/import-sigtap.js scripts/fixtures/sigtap-mini --validate-only
       - name: Build TypeScript
