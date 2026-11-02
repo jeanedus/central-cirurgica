@@ -44,6 +44,46 @@ const trauma360 = getSpineCodingSuggestions({
 });
 assert.equal(trauma360?.scenarioId, "traumatic-fracture-360-corpectomy");
 
+// Infecções e controle da dor: cenários não devem cair em regras degenerativas.
+const postOpInfection = getSpineCodingSuggestions({
+  subtype: "Revisão de artrodese", region: "Lombar", approach: "Posterior",
+  diagnosis: "Infecção pós-operatória com abscesso e instrumentação prévia"
+});
+assert.equal(postOpInfection?.scenarioId, "postoperative-spinal-infection");
+assert.ok(postOpInfection.codes.some(code => code.code === "3.01.01.28-0"));
+
+const spondylodiscitisNoFusion = getSpineCodingSuggestions({
+  subtype: "Descompressão", region: "Lombar", approach: "Posterior",
+  diagnosis: "Espondilodiscite lombar com abscesso epidural sem instabilidade"
+});
+assert.equal(spondylodiscitisNoFusion?.scenarioId, "spinal-infection-posterior-no-fusion");
+assert.ok(!spondylodiscitisNoFusion.codes.some(code => code.code === "3.07.15.01-6"));
+
+const radiofrequency = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Lombar", approach: "Percutânea",
+  diagnosis: "Rizotomia facetária por radiofrequência"
+});
+assert.equal(radiofrequency?.scenarioId, "pain-radiofrequency-rhizotomy");
+assert.ok(radiofrequency.codes.some(code => code.code === "3.14.03.33-6"));
+
+const stimTest = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Torácica", approach: "Percutânea",
+  diagnosis: "Neuroestimulação medular fase teste percutânea"
+});
+assert.equal(stimTest?.scenarioId, "pain-neurostimulation-percutaneous-test");
+
+const stimImplant = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Torácica", approach: "Percutânea",
+  diagnosis: "Neuroestimulação medular implante definitivo do gerador"
+});
+assert.equal(stimImplant?.scenarioId, "pain-neurostimulation-percutaneous-implant");
+
+const discography = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Lombar", approach: "Percutânea",
+  diagnosis: "Discografia lombar"
+});
+assert.equal(discography?.scenarioId, "lumbar-discography");
+
 // Deformidades: roteamento específico por diagnóstico, região e via.
 const earlyScoliosis = getSpineCodingSuggestions({
   subtype: "Artrodese", region: "Torácica", approach: "Posterior",
