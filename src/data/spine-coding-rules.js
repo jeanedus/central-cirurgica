@@ -11,6 +11,62 @@ const isNonDegenerativeDiagnosis = diagnosis =>
 
 const scenarios = [
   {
+    id: "traumatic-fracture-posterior-corpectomy",
+    title: "Fratura toracolombar — corpectomia posterior",
+    match: ({ subtype, region, approach, diagnosis }) =>
+      ["Artrodese", "Revisão de artrodese"].includes(subtype) &&
+      ["Torácica", "Toracolombar", "Lombar", "Sacral"].includes(region) &&
+      approach === "Posterior" &&
+      /fratura|fratura-luxação|trauma/i.test(diagnosis || "") &&
+      /corpectom|substitui[cç][aã]o do corpo/i.test(diagnosis || ""),
+    reference: "Cenário 3.2, p. 67–68",
+    codes: [
+      { code: "3.07.15.16-4", description: "Fratura/fratura-luxação de coluna — tratamento cirúrgico", role: "principal", condition: "Cobrança uma única vez, conforme manual." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "associado", condition: "Conforme segmentos instrumentados." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior/póstero-lateral", role: "associado", condition: "Conforme corpectomia e configuração 360°; multiplicidade específica do manual." },
+      { code: "3.07.15.28-8", description: "Substituição de corpo vertebral", role: "associado", condition: "Conforme número de corpos ressecados; não calcular automaticamente." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar", role: "condicional", condition: "Discectomias para corpectomia; multiplicidade específica." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Conforme técnica." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal estreito por segmento", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.31-8", description: "Lesão traumática raquimedular", role: "condicional", condition: "Somente quando houver trauma raquimedular documentado." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto autólogo", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.06.01.02-9", description: "Costectomia", role: "condicional", condition: "Conforme costo-transversectomia; porte conforme número de arcos." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "evento", condition: "Somente se presente e tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Se justificada; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "condicional", condition: "Conforme tempo/fração." }
+    ]
+  },
+  {
+    id: "traumatic-fracture-360-corpectomy",
+    title: "Fratura toracolombar — corpectomia anterior/lateral e fixação posterior 360°",
+    match: ({ subtype, region, approach, diagnosis }) =>
+      ["Artrodese", "Revisão de artrodese"].includes(subtype) &&
+      ["Torácica", "Toracolombar", "Lombar"].includes(region) &&
+      ["Anterior e posterior", "Anterior", "Lateral"].includes(approach) &&
+      /fratura|fratura-luxação|trauma/i.test(diagnosis || "") &&
+      /corpectom|substitui[cç][aã]o do corpo/i.test(diagnosis || ""),
+    reference: "Cenário 3.3, p. 69–71",
+    codes: [
+      { code: "3.07.15.16-4", description: "Fratura/fratura-luxação de coluna — tratamento cirúrgico", role: "principal", condition: "Cobrança uma única vez, conforme manual." },
+      { code: "3.07.15.01-6", description: "Artrodese instrumentada por segmento", role: "associado", condition: "Conforme segmentos instrumentados." },
+      { code: "3.07.15.02-4", description: "Artrodese via anterior/póstero-lateral", role: "associado", condition: "Concomitante na configuração 360°; separar vias/tempos e validar contrato." },
+      { code: "3.07.15.28-8", description: "Substituição de corpo vertebral", role: "associado", condition: "Conforme número de corpos ressecados; não calcular automaticamente." },
+      { code: "3.07.15.18-0", description: "Hérnia de disco tóraco-lombar", role: "condicional", condition: "Discectomias para corpectomia; multiplicidade específica." },
+      { code: "3.07.15.19-9", description: "Laminectomia/laminotomia", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.09-1", description: "Descompressão medular/cauda equina", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.36-9", description: "Tratamento microcirúrgico do canal estreito por segmento", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.07.15.31-8", description: "Lesão traumática raquimedular", role: "condicional", condition: "Somente se houver trauma raquimedular." },
+      { code: "3.07.32.02-6", description: "Retirada de enxerto autólogo", role: "condicional", condition: "Somente se realizada." },
+      { code: "3.06.01.02-9", description: "Costectomia", role: "condicional", condition: "Conforme técnica póstero-lateral." },
+      { code: "3.06.01.19-3", description: "Toracotomia para procedimento ortopédico sobre coluna", role: "condicional", condition: "Somente se acesso torácico anterior/lateral." },
+      { code: "3.09.10.13-7", description: "Lesão vascular intra-abdominal", role: "evento", condition: "Somente se lesão inadvertida em acesso anterior lombar for tratada." },
+      { code: "3.14.01.26-0", description: "Tratamento cirúrgico da fístula liquórica", role: "evento", condition: "Somente se presente e tratada." },
+      { code: "2.02.02.09-1", description: "Monitorização neurofisiológica intraoperatória", role: "condicional", condition: "Se justificada; destinada à equipe de neuromonitorização." },
+      { code: "4.08.11.02-6", description: "Radioscopia", role: "condicional", condition: "Conforme tempo/fração." }
+    ]
+  },
+  {
     id: "vertebral-tumor-anterior-corpectomy",
     title: "Tumor do corpo vertebral — via anterior/lateral com corpectomia",
     match: ({ subtype, region, approach, diagnosis }) =>
