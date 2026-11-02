@@ -44,6 +44,46 @@ const trauma360 = getSpineCodingSuggestions({
 });
 assert.equal(trauma360?.scenarioId, "traumatic-fracture-360-corpectomy");
 
+const cryo = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Lombar", approach: "Percutânea", diagnosis: "Criodenervação facetária"
+});
+assert.equal(cryo?.scenarioId, "pain-cryo-denervation");
+
+const chemical = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Lombar", approach: "Percutânea", diagnosis: "Denervação facetária por método químico com álcool"
+});
+assert.equal(chemical?.scenarioId, "pain-chemical-denervation");
+
+const stimLaminectomyTest = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Torácica", approach: "Posterior",
+  diagnosis: "Neuroestimulação medular fase teste por laminectomia"
+});
+assert.equal(stimLaminectomyTest?.scenarioId, "pain-neurostimulation-laminectomy-test");
+
+const stimLaminectomyImplant = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Torácica", approach: "Posterior",
+  diagnosis: "Neuroestimulação medular implante definitivo por laminectomia"
+});
+assert.equal(stimLaminectomyImplant?.scenarioId, "pain-neurostimulation-laminectomy-implant");
+
+const stimRevision = getSpineCodingSuggestions({
+  subtype: "Revisão de artrodese", region: "Torácica", approach: "Posterior",
+  diagnosis: "Revisão de sistema de neuroestimulação medular"
+});
+assert.equal(stimRevision?.scenarioId, "pain-neurostimulation-revision");
+
+const selectiveRhizotomy = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Lombar", approach: "Posterior",
+  diagnosis: "Rizotomia seletiva para espasticidade"
+});
+assert.equal(selectiveRhizotomy?.scenarioId, "pain-selective-rhizotomy-spasticity");
+
+const ozone = getSpineCodingSuggestions({
+  subtype: "Outro", region: "Lombar", approach: "Percutânea",
+  diagnosis: "Ozonioterapia para dor lombar"
+});
+assert.equal(ozone?.scenarioId, "pain-ozone-therapy");
+
 // Infecções e controle da dor: cenários não devem cair em regras degenerativas.
 const postOpInfection = getSpineCodingSuggestions({
   subtype: "Revisão de artrodese", region: "Lombar", approach: "Posterior",
